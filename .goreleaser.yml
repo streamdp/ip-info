@@ -6,9 +6,9 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
+    main: cmd/main.go
     goos:
       - linux
-      - darwin
     ldflags:
       - -s -w -X github.com/streamdp/ip-info/config.Version={{.Version}}
 archives:
@@ -22,12 +22,11 @@ archives:
     files:
       - README.md
       - LICENSE
-      - site/*
-      - model/init/*
+      - database/model/*
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:

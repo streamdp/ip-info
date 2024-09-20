@@ -14,8 +14,8 @@ services:
       container_name: postgres-container
 
    ip-info:
-      build: .
-      image: ghcr.io/streamdp/ip-info:v0.0.1
+#      build: .
+      image: streamdp/ip-info:v0.0.1
       environment:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres-container:5432/dbip?sslmode=disable
       ports:

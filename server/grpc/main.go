@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-//go:generate protoc ./proto/ip_info.proto --go_out=plugins=grpc:../.
+//go:generate protoc ./proto/ip_info.proto --go_out=../. --go-grpc_out=../.
 
 type Server struct {
 	srv *grpc.Server
