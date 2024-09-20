@@ -29,6 +29,5 @@ func (c *Config) IsValid() bool {
 	if c.DatabaseUrl == "" || postgresqlRe.MatchString(c.DatabaseUrl) {
 		return false
 	}
-
 	return true
 }
