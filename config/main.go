@@ -28,11 +28,11 @@ func LoadConfig() (*domain.Config, error) {
 	flag.BoolVar(&showVersion, "v", false, "display version")
 	flag.IntVar(&cfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
 	flag.IntVar(&cfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
-	flag.IntVar(&cfg.HttpWriteTimeout, "write-timeout", httpDefaultTimeout, "http server write timeout")
-	flag.IntVar(&cfg.ServerReadTimeout, "read-timeout", httpDefaultTimeout, "http server read timeout")
+	flag.IntVar(&cfg.HttpReadTimeout, "read-timeout", httpDefaultTimeout, "http server read timeout")
 	flag.IntVar(&cfg.HttpReadHeaderTimeout, "readheader-timeout", httpDefaultTimeout,
 		"http server readheader timeout",
 	)
+	flag.IntVar(&cfg.HttpWriteTimeout, "write-timeout", httpDefaultTimeout, "http server write timeout")
 	flag.Parse()
 
 	if showHelp {
