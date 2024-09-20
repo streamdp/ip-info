@@ -1,0 +1,25 @@
+version: "3"
+services:
+   postgres:
+      image: postgres:16.4-alpine
+      ports:
+         -  "5432:5432"
+      environment:
+         - POSTGRES_DB=postgres
+         - POSTGRES_USER=postgres
+         - POSTGRES_PASSWORD=postgres
+      volumes:
+         - ../postgres/ip-info/postgres_data:/var/lib/postgresql/data
+         - ./database/model:/docker-entrypoint-initdb.d/:ro
+      container_name: postgres-container
+
+   ip-info:
+      build: .
+      image: ip-info:0.0.1
+      environment:
+         - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres-container:5432/dbip?sslmode=disable
+      ports:
+         - "8080:8080"
+      container_name: ip-info-container
+      depends_on:
+         - postgres
