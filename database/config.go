@@ -13,7 +13,7 @@ type configDto struct {
 	BackupTable string    `db:"backup_table"`
 }
 
-func (d *db) LoadDatabaseConfig() (err error) {
+func (d *db) loadDatabaseConfig() (err error) {
 	dto := &configDto{}
 
 	if err = d.DB.QueryRowContext(d.ctx, fmt.Sprintf("select * from %s;", configTableName)).Scan(
@@ -31,7 +31,8 @@ func (d *db) LoadDatabaseConfig() (err error) {
 	return
 }
 
-func (d *db) UpdateDatabaseConfig() (err error) {
+func (d *db) updateDatabaseConfig() (err error) {
+	d.l.Println("updating database config")
 	if _, err = d.DB.ExecContext(
 		d.ctx, fmt.Sprintf(
 			"update %s set last_update=now() at time zone 'utc', active_table='%s', backup_table='%s';",
@@ -44,8 +45,4 @@ func (d *db) UpdateDatabaseConfig() (err error) {
 	}
 
 	return
-}
-
-func (d *db) LastUpdate() time.Time {
-	return d.cfg.LastUpdate
 }

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"log"
 	"net"
 	"time"
 
@@ -12,16 +13,7 @@ import (
 
 type Database interface {
 	IpInfo(ip net.IP) (*domain.IpInfo, error)
-	LastUpdate() time.Time
-
-	UpdateDatabaseConfig() error
-	LoadDatabaseConfig() error
-
-	Import(url string) error
-	Truncate() error
-	CreateIndex() error
-	DropIndex() error
-	SwitchTables()
+	UpdateIpDatabase() (nextUpdate time.Duration, err error)
 
 	Close() error
 }
@@ -30,10 +22,11 @@ type db struct {
 	*sql.DB
 	ctx context.Context
 
+	l   *log.Logger
 	cfg *domain.DatabaseConfig
 }
 
-func Connect(ctx context.Context, cfg *domain.Config) (d Database, err error) {
+func Connect(ctx context.Context, cfg *domain.Config, l *log.Logger) (d Database, err error) {
 	sqlDb := &sql.DB{}
 	if sqlDb, err = sql.Open("postgres", cfg.DatabaseUrl); err != nil {
 		return
@@ -43,6 +36,7 @@ func Connect(ctx context.Context, cfg *domain.Config) (d Database, err error) {
 		DB:  sqlDb,
 		ctx: ctx,
 
+		l: l,
 		cfg: &domain.DatabaseConfig{
 			LastUpdate:  time.Now().Add(-31 * 24 * time.Hour),
 			ActiveTable: "ip_to_city_one",

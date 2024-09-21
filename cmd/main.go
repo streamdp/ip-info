@@ -23,7 +23,7 @@ func main() {
 
 	ctx := context.Background()
 
-	d, errDbConnect := database.Connect(ctx, cfg)
+	d, errDbConnect := database.Connect(ctx, cfg, l)
 	if errDbConnect != nil {
 		l.Fatalln(errDbConnect)
 		return

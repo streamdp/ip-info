@@ -1,13 +1,5 @@
 package domain
 
-import (
-	"regexp"
-)
-
-var postgresqlRe = regexp.MustCompile(
-	"(postgres(?:ql)?):\\/\\/(?:([^@\\s]+)@)?([^\\/\\s]+)(?:\\/(\\w+))?(?:\\?(.+))?\n",
-)
-
 type Config struct {
 	HttpPort              int
 	GrpcPort              int
@@ -26,7 +18,7 @@ func (c *Config) IsValid() bool {
 	if c.GrpcPort < 0 || c.GrpcPort > 65535 {
 		return false
 	}
-	if c.DatabaseUrl == "" || postgresqlRe.MatchString(c.DatabaseUrl) {
+	if c.DatabaseUrl == "" {
 		return false
 	}
 	return true
