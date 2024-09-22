@@ -33,6 +33,9 @@ func LoadConfig() (*domain.Config, error) {
 		"http server readheader timeout",
 	)
 	flag.IntVar(&cfg.HttpWriteTimeout, "write-timeout", httpDefaultTimeout, "http server write timeout")
+	flag.BoolVar(&cfg.IsRandomIpRequest, "random-request", false,
+		"enable \"random\" ip (don't process the IP string in the request)",
+	)
 	flag.Parse()
 
 	if showHelp {

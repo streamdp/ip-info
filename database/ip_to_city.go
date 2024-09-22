@@ -40,7 +40,7 @@ func (d *db) truncate() (err error) {
 
 func (d *db) createIndex() (err error) {
 	d.l.Println(
-		fmt.Sprintf("creating  %s_ip_start_gist_idx index on %s table", d.cfg.BackupTable, d.cfg.BackupTable),
+		fmt.Sprintf("creating %s_ip_start_gist_idx index on %s table", d.cfg.BackupTable, d.cfg.BackupTable),
 	)
 	_, err = d.DB.ExecContext(d.ctx,
 		fmt.Sprintf("create index if not exists %s_ip_start_gist_idx on %s using gist (ip_start inet_ops);",
@@ -83,7 +83,7 @@ func (d *db) IpInfo(ip net.IP) (*domain.IpInfo, error) {
 		&dto.Longitude,
 		&dto.Latitude,
 	); err != nil {
-		return nil, fmt.Errorf("couldn't determine ip location")
+		return nil, fmt.Errorf("couldn't locate %s", ip)
 	}
 
 	return &domain.IpInfo{

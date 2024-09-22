@@ -8,6 +8,7 @@ type Config struct {
 	HttpWriteTimeout      int
 	HttpReadTimeout       int
 	HttpReadHeaderTimeout int
+	IsRandomIpRequest     bool
 	Version               string
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
 	"google.golang.org/grpc"
+	_ "google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/reflection"
 )
 

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"net/http"
 
@@ -11,6 +12,10 @@ import (
 func (s *Server) IpInfo() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ipString := r.URL.Query().Get("ip")
+
+		if s.cfg.IsRandomIpRequest {
+			ipString = RandomIpString()
+		}
 
 		ip := net.ParseIP(ipString)
 		if ip == nil {
@@ -25,9 +30,9 @@ func (s *Server) IpInfo() func(http.ResponseWriter, *http.Request) {
 
 		response, errIpInfo := s.d.IpInfo(ip)
 		if errIpInfo != nil {
-			errIpInfo = fmt.Errorf("could not get info about ip location: %w", errIpInfo)
+			errIpInfo = fmt.Errorf("could not get ip location: %w", errIpInfo)
 			s.l.Println(errIpInfo)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusNotFound)
 			if _, err := w.Write(domain.NewResponse(errIpInfo, nil).Bytes()); err != nil {
 				s.l.Println(err)
 			}
@@ -39,4 +44,14 @@ func (s *Server) IpInfo() func(http.ResponseWriter, *http.Request) {
 			s.l.Println(err)
 		}
 	}
+}
+
+func RandomIpString() string {
+	return fmt.Sprintf(
+		"%d.%d.%d.%d",
+		rand.Intn(255),
+		rand.Intn(255),
+		rand.Intn(255),
+		rand.Intn(255),
+	)
 }

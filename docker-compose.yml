@@ -14,12 +14,14 @@ services:
       container_name: postgres-container
 
    ip-info:
-      # build: .
-      image: streamdp/ip-info:v0.0.1
+      build: .
+      image: streamdp/ip-info:v0.0.3
       environment:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres-container:5432/dbip?sslmode=disable
       ports:
          - "8080:8080"
+         - "50051:50051"
       container_name: ip-info-container
+      # command: ["/srv/app","-random-request"]
       depends_on:
          - postgres

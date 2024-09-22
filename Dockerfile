@@ -13,6 +13,5 @@ FROM alpine:3.20.3
 COPY --from=build /build/app 	    /srv/app
 
 WORKDIR /srv
-EXPOSE 8080
 
 CMD ["/srv/app"]
