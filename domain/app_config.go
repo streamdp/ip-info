@@ -1,6 +1,10 @@
 package domain
 
-type Config struct {
+import (
+	"fmt"
+)
+
+type AppConfig struct {
 	HttpPort              int
 	GrpcPort              int
 	GrpcUseReflection     bool
@@ -13,15 +17,15 @@ type Config struct {
 	Version               string
 }
 
-func (c *Config) IsValid() bool {
+func (c *AppConfig) Validate() error {
 	if c.HttpPort < 0 || c.HttpPort > 65535 {
-		return false
+		return fmt.Errorf("http port must be between 0 and 65535")
 	}
 	if c.GrpcPort < 0 || c.GrpcPort > 65535 {
-		return false
+		return fmt.Errorf("gRPC port must be between 0 and 65535")
 	}
 	if c.DatabaseUrl == "" {
-		return false
+		return fmt.Errorf("database url cannot be empty")
 	}
-	return true
+	return nil
 }

@@ -13,7 +13,7 @@ import (
 
 type Server struct {
 	srv *http.Server
-	cfg *domain.Config
+	cfg *domain.AppConfig
 
 	d database.Database
 	l *log.Logger
@@ -26,7 +26,7 @@ func (s *Server) initRouter() (mux *http.ServeMux) {
 	return
 }
 
-func NewServer(d database.Database, l *log.Logger, cfg *domain.Config) *Server {
+func NewServer(d database.Database, l *log.Logger, cfg *domain.AppConfig) *Server {
 	return &Server{
 		srv: &http.Server{
 			ReadTimeout:       time.Duration(cfg.HttpReadTimeout) * time.Millisecond,

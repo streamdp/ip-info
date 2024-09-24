@@ -16,7 +16,7 @@ import (
 
 type Server struct {
 	srv *grpc.Server
-	cfg *domain.Config
+	cfg *domain.AppConfig
 
 	d database.Database
 	l *log.Logger
@@ -24,7 +24,7 @@ type Server struct {
 	IpInfoServer
 }
 
-func NewServer(d database.Database, l *log.Logger, cfg *domain.Config) *Server {
+func NewServer(d database.Database, l *log.Logger, cfg *domain.AppConfig) *Server {
 	gRpcSrv := grpc.NewServer([]grpc.ServerOption{}...)
 
 	ipInfoSrv := &Server{

@@ -26,7 +26,7 @@ type db struct {
 	cfg *domain.DatabaseConfig
 }
 
-func Connect(ctx context.Context, cfg *domain.Config, l *log.Logger) (d Database, err error) {
+func Connect(ctx context.Context, cfg *domain.AppConfig, l *log.Logger) (d Database, err error) {
 	sqlDb := &sql.DB{}
 	if sqlDb, err = sql.Open("postgres", cfg.DatabaseUrl); err != nil {
 		return

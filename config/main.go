@@ -17,11 +17,11 @@ const (
 
 var Version = "0.0.1"
 
-func LoadConfig() (*domain.Config, error) {
+func LoadConfig() (*domain.AppConfig, error) {
 	var (
 		showHelp    bool
 		showVersion bool
-		cfg         = &domain.Config{}
+		cfg         = &domain.AppConfig{}
 	)
 
 	flag.BoolVar(&showHelp, "h", false, "display help")
@@ -55,8 +55,8 @@ func LoadConfig() (*domain.Config, error) {
 		return nil, fmt.Errorf("IP_INFO_DATABASE_URL environment variable not set")
 	}
 
-	if !cfg.IsValid() {
-		return nil, fmt.Errorf("invalid config")
+	if err := cfg.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
 	return cfg, nil
