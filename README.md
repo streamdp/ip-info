@@ -1,10 +1,15 @@
 ## IP-INFO
 ### Microservice for IP-based geolocation
-This microservice is a small, independent software application designed to determine the geographic location of a device based on its IP address. It achieves this by using a free public database called db-ip.com, which contains a vast amount of information linking IP addresses to specific locations.
+This microservice is a small, independent software application designed to determine the geographic location of a device 
+based on its IP address. It achieves this by using a free public database called db-ip.com, which contains a vast amount
+of information linking IP addresses to specific locations.
 ### Key features:
-* **Automatic Database Updates:** The microservice regularly updates its local copy of the db-ip.com database to ensure that the location data is always accurate and up-to-date.
-* **Fast Lookup:** It is optimized to perform quick searches within the database, allowing it to efficiently determine the location associated with a given IP address.
-* **HTTP and gRPC Support:** The microservice can be accessed and interacted with using both protocols, providing flexibility in how it can be integrated into other systems or applications.
+* **Automatic Database Updates:** The microservice regularly updates its local copy of the db-ip.com database to ensure 
+that the location data is always accurate and up-to-date.
+* **Fast Lookup:** It is optimized to perform quick searches within the database, allowing it to efficiently determine 
+the location associated with a given IP address.
+* **HTTP and gRPC Support:** The microservice can be accessed and interacted with using both protocols, providing 
+flexibility in how it can be integrated into other systems or applications.
 ### Usage example:
 Start postgresql and ip-info containers:
 ```shell
@@ -53,33 +58,26 @@ $ grpcurl  -plaintext -d '{"ip": "211.27.38.98"}' 127.0.0.1:50051 IpInfo/GetIpIn
 }
 ```
 ### Benchmarking (i3-7100U CPU @ 2.40GHz)
-To enable support for random requests, start service with the `-random-request` flag.
-```shell
-$ make build
-$ ./bin/app -random-request
-```
-or uncomment `# command: ["/srv/app","-random-request"]` in the docker-compose.yml and re-run container.
-```shell
-$ docker-compose up -d ip-info 
-```
+IP randomization is not supported for security reasons, the difference in tests is about 10% for cases where 1 IP is 
+requested and when the IP is requested randomly (currently internal query caches are not implemented).
 * **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey):
 ```shell
-$ hey -c 2 -n 10000 http://127.0.0.1:8080/ip-info?ip=
+$ hey -c 2 -n 10000 http://127.0.0.1:8080/ip-info?ip=8.8.8.8
 Summary:
-  Total:        3.9759 secs
-  Slowest:      0.0069 secs
+  Total:        3.7542 secs
+  Slowest:      0.0097 secs
   Fastest:      0.0005 secs
-  Average:      0.0008 secs
-  Requests/sec: 2515.1688
+  Average:      0.0007 secs
+  Requests/sec: 2663.6510
 ```
 * **gRPC** benchmarking with [ghz - Simple gRPC load testing tool](https://github.com/bojand/ghz):
 ```shell
-$ ghz -c 2 -n 10000 127.0.0.1:50051 --call IpInfo.GetIpInfo -d '{"ip":""}' --insecure 
+$ ghz -c 2 -n 10000 127.0.0.1:50051 --call IpInfo.GetIpInfo -d '{"ip":"8.8.8.8"}' --insecure 
 Summary:
-  Count:	10000
-  Total:	7.08 s
-  Slowest:	9.60 ms
-  Fastest:	0.63 ms
-  Average:	1.16 ms
-  Requests/sec:	1412.70
+  Count:        10000
+  Total:        6.73 s
+  Slowest:      8.95 ms
+  Fastest:      0.61 ms
+  Average:      1.09 ms
+  Requests/sec: 1485.69
 ```

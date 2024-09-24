@@ -12,7 +12,7 @@ import (
 const (
 	httpServerDefaultPort = 8080
 	gRPCServerDefaultPort = 50051
-	httpDefaultTimeout    = 5000
+	serverDefaultTimeout  = 5000
 )
 
 var Version = "0.0.1"
@@ -28,14 +28,12 @@ func LoadConfig() (*domain.Config, error) {
 	flag.BoolVar(&showVersion, "v", false, "display version")
 	flag.IntVar(&cfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
 	flag.IntVar(&cfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
-	flag.IntVar(&cfg.HttpReadTimeout, "read-timeout", httpDefaultTimeout, "http server read timeout")
-	flag.IntVar(&cfg.HttpReadHeaderTimeout, "readheader-timeout", httpDefaultTimeout,
-		"http server readheader timeout",
+	flag.IntVar(&cfg.GrpcReadTimeout, "grpc-read-timeout", serverDefaultTimeout, "gRPC server read timeout")
+	flag.IntVar(&cfg.HttpReadTimeout, "http-read-timeout", serverDefaultTimeout, "http server read timeout")
+	flag.IntVar(&cfg.HttpReadHeaderTimeout, "read-header-timeout", serverDefaultTimeout,
+		"http server read header timeout",
 	)
-	flag.IntVar(&cfg.HttpWriteTimeout, "write-timeout", httpDefaultTimeout, "http server write timeout")
-	flag.BoolVar(&cfg.IsRandomIpRequest, "random-request", false,
-		"enable \"random\" ip (don't process the IP string in the request)",
-	)
+	flag.IntVar(&cfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout, "http server write timeout")
 	flag.Parse()
 
 	if showHelp {

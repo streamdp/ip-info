@@ -5,9 +5,10 @@ type Config struct {
 	GrpcPort              int
 	GrpcUseReflection     bool
 	DatabaseUrl           string
-	HttpWriteTimeout      int
+	GrpcReadTimeout       int
 	HttpReadTimeout       int
 	HttpReadHeaderTimeout int
+	HttpWriteTimeout      int
 	IsRandomIpRequest     bool
 	Version               string
 }

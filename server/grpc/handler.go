@@ -7,16 +7,11 @@ import (
 	"time"
 
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/server/rest"
 )
 
 func (s *Server) GetIpInfo(ctx context.Context, in *Ip) (*Response, error) {
-	_, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+	_, cancel := context.WithTimeout(ctx, time.Duration(s.cfg.GrpcReadTimeout)*time.Millisecond)
 	defer cancel()
-
-	if s.cfg.IsRandomIpRequest {
-		in.Ip = rest.RandomIpString()
-	}
 
 	ip := net.ParseIP(in.Ip)
 	if ip == nil {
