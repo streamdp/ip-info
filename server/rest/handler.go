@@ -8,7 +8,7 @@ import (
 	"github.com/streamdp/ip-info/domain"
 )
 
-func (s *Server) IpInfo() func(http.ResponseWriter, *http.Request) {
+func (s *Server) ipInfo() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ipString := r.URL.Query().Get("ip")
 
@@ -36,6 +36,15 @@ func (s *Server) IpInfo() func(http.ResponseWriter, *http.Request) {
 
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(domain.NewResponse(nil, response).Bytes()); err != nil {
+			s.l.Println(err)
+		}
+	}
+}
+
+func (s *Server) healthz() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte("ok")); err != nil {
 			s.l.Println(err)
 		}
 	}

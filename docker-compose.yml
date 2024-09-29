@@ -15,12 +15,18 @@ services:
 
    ip-info:
       build: .
-      image: streamdp/ip-info:v0.0.4
+      image: streamdp/ip-info:v0.0.6
       environment:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres-container:5432/dbip?sslmode=disable
       ports:
          - "8080:8080"
          - "50051:50051"
       container_name: ip-info-container
+      healthcheck:
+         test: curl --fail http://ip-info-container:8080/healthz || exit 1
+         interval: 60s
+         retries: 5
+         start_period: 15s
+         timeout: 10s
       depends_on:
          - postgres
