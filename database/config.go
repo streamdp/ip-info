@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"time"
 )
@@ -21,7 +22,7 @@ func (d *db) loadDatabaseConfig() (err error) {
 		&dto.ActiveTable,
 		&dto.BackupTable,
 	); err != nil {
-		return fmt.Errorf("couldn't load config from database")
+		return errors.New("couldn't load config from database")
 	}
 
 	d.cfg.LastUpdate = dto.LastUpdate

@@ -1,7 +1,13 @@
 package domain
 
 import (
+	"errors"
 	"fmt"
+)
+
+var (
+	errWrongNetworkPort = errors.New("port must be between 0 and 65535")
+	errEmptyDatabaseUrl = errors.New("database url cannot be blank")
 )
 
 type AppConfig struct {
@@ -19,13 +25,13 @@ type AppConfig struct {
 
 func (c *AppConfig) Validate() error {
 	if c.HttpPort < 0 || c.HttpPort > 65535 {
-		return fmt.Errorf("http port must be between 0 and 65535")
+		return fmt.Errorf("http: %w", errWrongNetworkPort)
 	}
 	if c.GrpcPort < 0 || c.GrpcPort > 65535 {
-		return fmt.Errorf("gRPC port must be between 0 and 65535")
+		return fmt.Errorf("gRPC: %w", errWrongNetworkPort)
 	}
 	if c.DatabaseUrl == "" {
-		return fmt.Errorf("database url cannot be empty")
+		return errEmptyDatabaseUrl
 	}
 	return nil
 }

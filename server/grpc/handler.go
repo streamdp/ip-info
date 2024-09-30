@@ -34,7 +34,12 @@ func (s *Server) GetIpInfo(ctx context.Context, in *Ip) (*Response, error) {
 
 func convertIpInfoDto(dto *domain.IpInfo) *Response {
 	return &Response{
-		Ip:        dto.Ip.String(),
+		Ip: func(ip net.IP) string {
+			if ip == nil {
+				return ""
+			}
+			return ip.String()
+		}(dto.Ip),
 		Continent: dto.Continent,
 		Country:   dto.Country,
 		StateProv: dto.StateProv,

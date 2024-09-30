@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -11,7 +12,7 @@ import (
 
 const downloadUrl = "https://download.db-ip.com/free/dbip-city-lite-%d-%s.csv.gz"
 
-var ErrNoUpdateRequired = fmt.Errorf("no update required")
+var ErrNoUpdateRequired = errors.New("no update required")
 
 type ipToCityDto struct {
 	ipStart   string
@@ -111,7 +112,7 @@ func (d *db) UpdateIpDatabase() (nextUpdate time.Duration, err error) {
 	if err = d.dropIndex(); err != nil {
 		return 0, fmt.Errorf("failed to drop index: %w", err)
 	}
-	if err = d.importCsv(buildDownloadUrl()); err != nil {
+	if err = d.importCsv(buildDownloadUrl(time.Now())); err != nil {
 		return 0, fmt.Errorf("failed to import database: %w", err)
 	}
 	if err = d.createIndex(); err != nil {
@@ -126,8 +127,8 @@ func (d *db) UpdateIpDatabase() (nextUpdate time.Duration, err error) {
 	return nextUpdateInterval(d.cfg.LastUpdate), nil
 }
 
-func buildDownloadUrl() string {
-	year, month, _ := time.Now().Date()
+func buildDownloadUrl(t time.Time) string {
+	year, month, _ := t.Date()
 
 	monthStr := strconv.Itoa(int(month))
 	if month < 10 {

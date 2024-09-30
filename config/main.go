@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -52,7 +53,7 @@ func LoadConfig() (*domain.AppConfig, error) {
 
 	cfg.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL")
 	if cfg.DatabaseUrl == "" {
-		return nil, fmt.Errorf("IP_INFO_DATABASE_URL environment variable not set")
+		return nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
 	}
 
 	if err := cfg.Validate(); err != nil {
