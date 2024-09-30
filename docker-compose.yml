@@ -11,22 +11,24 @@ services:
       volumes:
          - ../postgres/ip-info/postgres_data:/var/lib/postgresql/data
          - ./database/model:/docker-entrypoint-initdb.d/:ro
-      container_name: postgres-container
+      container_name: postgres
+      restart: always
 
    ip-info:
       build: .
-      image: streamdp/ip-info:v0.0.6
+      image: streamdp/ip-info:v0.0.7
       environment:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres-container:5432/dbip?sslmode=disable
       ports:
          - "8080:8080"
          - "50051:50051"
-      container_name: ip-info-container
+      container_name: ip-info
       healthcheck:
-         test: curl --fail http://ip-info-container:8080/healthz || exit 1
-         interval: 60s
+         test: wget --spider ip-info:8080/healthz || exit 1
+         interval: 30s
          retries: 5
          start_period: 15s
          timeout: 10s
+      restart: always
       depends_on:
          - postgres
