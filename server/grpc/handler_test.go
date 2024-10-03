@@ -1,12 +1,16 @@
 package grpc
 
 import (
+	"context"
 	"net"
 	"reflect"
 	"testing"
 
 	"github.com/streamdp/ip-info/domain"
+	"github.com/streamdp/ip-info/server"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 )
 
 func Test_convertIpInfoDto(t *testing.T) {
@@ -46,6 +50,53 @@ func Test_convertIpInfoDto(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := convertIpInfoDto(tt.dto); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("convertIpInfoDto() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_grpcClientIp(t *testing.T) {
+	makeContextWithHeader := func(header, value string) context.Context {
+		return metadata.NewIncomingContext(context.TODO(), metadata.MD{
+			header: []string{value},
+		})
+	}
+
+	tests := []struct {
+		name string
+		ctx  context.Context
+		want string
+	}{
+		{
+			name: "get ip from cf-connecting-ip header",
+			ctx:  makeContextWithHeader(ip_locator.CfConnectingIp, "127.0.0.1"),
+			want: "127.0.0.1",
+		},
+		{
+			name: "get ip from x-forwarded-for header",
+			ctx:  makeContextWithHeader(ip_locator.XForwardedFor, "8.8.8.8"),
+			want: "8.8.8.8",
+		},
+		{
+			name: "get ip from x-real-ip header",
+			ctx:  makeContextWithHeader(ip_locator.XRealIp, "12.12.23.14"),
+			want: "12.12.23.14",
+		},
+		{
+			name: "get ip from peer context",
+			ctx: peer.NewContext(context.TODO(), &peer.Peer{
+				Addr: &net.TCPAddr{
+					IP:   net.ParseIP("23.34.56.78"),
+					Port: 8080,
+				},
+			}),
+			want: "23.34.56.78",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := grpcClientIp(tt.ctx); got != tt.want {
+				t.Errorf("grpcClientIp() = %v, want %v", got, tt.want)
 			}
 		})
 	}
