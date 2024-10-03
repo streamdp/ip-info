@@ -7,12 +7,13 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
+	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
 	"google.golang.org/grpc/reflection"
 )
 
-//go:generate protoc ./proto/ip_info.proto --go_out=../. --go-grpc_out=../.
+//go:generate protoc ./api/proto/ip_info.proto --go_out=api/ --go-grpc_out=api/
 
 type Server struct {
 	srv *grpc.Server
@@ -21,7 +22,7 @@ type Server struct {
 	d database.Database
 	l *log.Logger
 
-	IpInfoServer
+	v1.IpInfoServer
 }
 
 func NewServer(d database.Database, l *log.Logger, cfg *domain.AppConfig) *Server {
@@ -35,7 +36,7 @@ func NewServer(d database.Database, l *log.Logger, cfg *domain.AppConfig) *Serve
 		l: l,
 	}
 
-	RegisterIpInfoServer(gRpcSrv, ipInfoSrv)
+	v1.RegisterIpInfoServer(gRpcSrv, ipInfoSrv)
 
 	if cfg.GrpcUseReflection {
 		reflection.Register(gRpcSrv)

@@ -21,7 +21,8 @@ type Server struct {
 
 func (s *Server) initRouter() (mux *http.ServeMux) {
 	mux = http.NewServeMux()
-	mux.HandleFunc("/ip-info", s.ipInfo())
+	mux.HandleFunc("/ip-info", s.ipInfo(false))
+	mux.HandleFunc("/client-ip", s.ipInfo(true))
 	mux.HandleFunc("/healthz", s.healthz())
 
 	return

@@ -10,9 +10,7 @@ import (
 	"github.com/streamdp/ip-info/database"
 )
 
-const (
-	repeatIntervalOnError = 1 * time.Minute
-)
+const repeatIntervalOnError = 1 * time.Minute
 
 type DataPuller interface {
 	PullUpdates()

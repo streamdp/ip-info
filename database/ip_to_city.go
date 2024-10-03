@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"net"
@@ -12,7 +13,10 @@ import (
 
 const downloadUrl = "https://download.db-ip.com/free/dbip-city-lite-%d-%s.csv.gz"
 
-var ErrNoUpdateRequired = errors.New("no update required")
+var (
+	ErrNoUpdateRequired = errors.New("no update required")
+	ErrNoIpAddress      = errors.New("no ip address in the database")
+)
 
 type ipToCityDto struct {
 	ipStart   string
@@ -84,7 +88,10 @@ func (d *db) IpInfo(ip net.IP) (*domain.IpInfo, error) {
 		&dto.Longitude,
 		&dto.Latitude,
 	); err != nil {
-		return nil, fmt.Errorf("couldn't locate %s", ip)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoIpAddress
+		}
+		return nil, err
 	}
 
 	return &domain.IpInfo{

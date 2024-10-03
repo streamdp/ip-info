@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/streamdp/ip-info/domain"
+	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 )
 
 func Test_convertIpInfoDto(t *testing.T) {
 	tests := []struct {
 		name string
 		dto  *domain.IpInfo
-		want *Response
+		want *v1.Response
 	}{
 		{
 			name: "regular conversion",
@@ -25,7 +26,7 @@ func Test_convertIpInfoDto(t *testing.T) {
 				Latitude:  -122.085,
 				Longitude: 37.4223,
 			},
-			want: &Response{
+			want: &v1.Response{
 				Ip:        "8.8.8.8",
 				Continent: "NA",
 				Country:   "US",
@@ -38,7 +39,7 @@ func Test_convertIpInfoDto(t *testing.T) {
 		{
 			name: "empty conversion",
 			dto:  &domain.IpInfo{},
-			want: &Response{},
+			want: &v1.Response{},
 		},
 	}
 	for _, tt := range tests {
