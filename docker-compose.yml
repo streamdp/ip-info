@@ -16,7 +16,7 @@ services:
 
    ip-info:
       # build: .
-      image: streamdp/ip-info:v0.1.0
+      image: streamdp/ip-info:v0.1.1
       environment:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable
       ports:
@@ -24,7 +24,7 @@ services:
          - "50051:50051"
       container_name: ip-info
       healthcheck:
-         test: wget --spider ip-info:8080/healthz || exit 1
+         test: ["CMD", "wget", "--spider", "http://ip-info:8080/healthz"]
          interval: 30s
          retries: 5
          start_period: 15s
