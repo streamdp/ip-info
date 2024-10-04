@@ -9,8 +9,8 @@ create table ip_to_city_one (
   ip_end     inet unique,
   continent  char(2),
   country    char(2),
-  state_prov text not null default '',
-  city       text not null default '',
+  state_prov text default '',
+  city       text default '',
   latitude   double precision,
   longitude  double precision
 );
@@ -21,8 +21,8 @@ create table ip_to_city_two (
   ip_end     inet unique,
   continent  char(2),
   country    char(2),
-  state_prov text not null default '',
-  city       text not null default '',
+  state_prov text default '',
+  city       text default '',
   latitude   double precision,
   longitude  double precision
 );
