@@ -32,7 +32,10 @@ type ipToCityDto struct {
 func (d *db) importCsv(url string) (err error) {
 	d.l.Println("import ip database updates")
 	_, err = d.DB.ExecContext(d.ctx,
-		fmt.Sprintf("copy %s from program 'wget -qO- %s|gzip -d' delimiter ',' csv;", d.cfg.BackupTable, url),
+		fmt.Sprintf("copy %s from program 'wget -qO- %s|gzip -d' csv null 'null' delimiter ',';",
+			d.cfg.BackupTable,
+			url,
+		),
 	)
 	return err
 }
