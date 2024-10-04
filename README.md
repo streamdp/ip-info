@@ -1,11 +1,15 @@
 ## IP-INFO
+[![Website ip-info.run.place](https://img.shields.io/website-up-down-green-red/https/ip-info.run.place.svg)](https://ip-info.run.place)
+[![GitHub release](https://img.shields.io/github/release/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/releases/)
+[![GitHub license](https://img.shields.io/github/license/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/blob/master/LICENSE)
 ### Microservice for IP-based geolocation
 This microservice is a small, independent software application designed to determine the geographic location of a device 
-based on its IP address. It achieves this by using a free public database called db-ip.com, which contains a vast amount
+based on its IP address. It achieves this by using a free public database called [db-ip.com](https://db-ip.com)
+(*free version provides about __77%__ accuracy*), which contains a vast amount
 of information linking IP addresses to specific locations.
 ### Key features:
-* **Automatic Database Updates:** The microservice regularly updates its local copy of the db-ip.com database to ensure 
-that the location data is always accurate and up-to-date.
+* **Automatic Database Updates:** The microservice regularly updates its local copy of the **db-ip.com** database to 
+ensure that the location data is always accurate and up-to-date.
 * **Fast Lookup:** It is optimized to perform quick searches within the database, allowing it to efficiently determine 
 the location associated with a given IP address.
 * **HTTP and gRPC Support:** The microservice can be accessed and interacted with using both protocols, providing 
