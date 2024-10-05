@@ -1,8 +1,8 @@
 ## IP-INFO
 [![Website ip-info.run.place](https://img.shields.io/website-up-down-green-red/https/ip-info.run.place.svg)](https://ip-info.run.place)
 [![GitHub release](https://img.shields.io/github/release/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/releases/)
-[![test](https://github.com/streamdp/ip-info/actions/workflows/test.yml/badge.svg)](https://github.com/streamdp/ip-info/actions/workflows/test.yml)
 [![GitHub license](https://img.shields.io/github/license/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/blob/master/LICENSE)
+[![test](https://github.com/streamdp/ip-info/actions/workflows/test.yml/badge.svg)](https://github.com/streamdp/ip-info/actions/workflows/test.yml)
 ### Microservice for IP-based geolocation
 This microservice is a small, independent software application designed to determine the geographic location of a device 
 based on its IP address. It achieves this by using a free public database called [db-ip.com](https://db-ip.com)
