@@ -12,7 +12,8 @@ var errLockTimeout = errors.New("lock timeout")
 
 func (d *db) isLocked() (l bool) {
 	_ = d.DB.QueryRowContext(d.ctx,
-		"select true from pg_tables where schemaname='public' and tablename='_lock';").Scan(&l)
+		"select true from pg_tables where schemaname='public' and tablename='_lock';",
+	).Scan(&l)
 	return
 }
 
@@ -33,7 +34,7 @@ func (d *db) lockStatus() (err error) {
 func (d *db) acquireLock() (err error) {
 	if !d.isLocked() {
 		d.l.Println("acquiring lock")
-		_, err = d.DB.ExecContext(d.ctx, "select * into _lock from (values(now())) as a(created_at)")
+		_, err = d.DB.ExecContext(d.ctx, "select * into _lock from (values(now())) as a(created_at);")
 		return
 	}
 
