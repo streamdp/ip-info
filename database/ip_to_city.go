@@ -116,6 +116,15 @@ func (d *db) UpdateIpDatabase() (nextUpdate time.Duration, err error) {
 		return nextUpdateInterval(d.cfg.LastUpdate), ErrNoUpdateRequired
 	}
 
+	if err = d.acquireLock(); err != nil {
+		return 0, fmt.Errorf("failed to acquire lock: %w ", err)
+	}
+	defer func() {
+		if err = d.releaseLock(); err != nil {
+			d.l.Println(fmt.Errorf("failed to release lock: %w", err))
+		}
+	}()
+
 	if err = d.truncate(); err != nil {
 		return 0, fmt.Errorf("failed to truncate table: %w", err)
 	}
