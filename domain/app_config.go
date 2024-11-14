@@ -19,8 +19,8 @@ type AppConfig struct {
 	HttpReadTimeout       int
 	HttpReadHeaderTimeout int
 	HttpWriteTimeout      int
-	IsRandomIpRequest     bool
 	Version               string
+	EnableLimiter         bool
 }
 
 func (c *AppConfig) Validate() error {

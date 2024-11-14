@@ -9,37 +9,47 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
+	"github.com/streamdp/ip-info/pkg/ratelimiter"
 )
 
 type Server struct {
-	srv *http.Server
+	srv     *http.Server
+	limiter ratelimiter.Limiter
+
 	cfg *domain.AppConfig
 
 	d database.Database
 	l *log.Logger
 }
 
-func (s *Server) initRouter() (mux *http.ServeMux) {
-	mux = http.NewServeMux()
+func (s *Server) initRouter() http.Handler {
+	mux := http.NewServeMux()
 	mux.HandleFunc("/ip-info", s.ipInfo(false))
 	mux.HandleFunc("/client-ip", s.ipInfo(true))
 	mux.HandleFunc("/healthz", s.healthz())
 
-	return
+	if s.cfg.EnableLimiter {
+		return rateLimiterMW(s.limiter, s.l, mux)
+	}
+	return mux
 }
 
-func NewServer(d database.Database, l *log.Logger, cfg *domain.AppConfig) *Server {
-	return &Server{
+func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, cfg *domain.AppConfig) *Server {
+	s := &Server{
 		srv: &http.Server{
 			ReadTimeout:       time.Duration(cfg.HttpReadTimeout) * time.Millisecond,
 			ReadHeaderTimeout: time.Duration(cfg.HttpReadHeaderTimeout) * time.Millisecond,
 			WriteTimeout:      time.Duration(cfg.HttpWriteTimeout) * time.Millisecond,
 		},
+		limiter: limiter,
+
 		cfg: cfg,
 
 		d: d,
 		l: l,
 	}
+
+	return s
 }
 
 func (s *Server) Run() {

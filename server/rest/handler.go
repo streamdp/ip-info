@@ -7,7 +7,8 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/server"
+	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/ratelimiter"
 )
 
 func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Request) {
@@ -42,7 +43,9 @@ func getHttpStatus(err error) int {
 	if err == nil {
 		return http.StatusOK
 	}
-
+	if errors.Is(err, ratelimiter.ErrRateLimitExceeded) {
+		return http.StatusTooManyRequests
+	}
 	if errors.Is(err, ip_locator.ErrWrongIpAddress) {
 		return http.StatusBadRequest
 	}

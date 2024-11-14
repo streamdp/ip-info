@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/streamdp/ip-info/database"
-	"github.com/streamdp/ip-info/server"
+	"github.com/streamdp/ip-info/pkg/ip_locator"
 )
 
 func Test_httpClientIp(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/server"
+	"github.com/streamdp/ip-info/pkg/ip_locator"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"

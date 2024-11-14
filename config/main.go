@@ -14,27 +14,41 @@ const (
 	httpServerDefaultPort = 8080
 	gRPCServerDefaultPort = 50051
 	serverDefaultTimeout  = 5000
+
+	redisDefaultHost = "127.0.0.1"
+	redisDefaultPort = 6379
+	redisDefaultDb   = 0
+
+	defaultRateLimit = 10
 )
 
 var Version = "0.0.1"
 
-func LoadConfig() (*domain.AppConfig, error) {
+func LoadConfig() (*domain.AppConfig, *domain.LimiterConfig, error) {
 	var (
 		showHelp    bool
 		showVersion bool
-		cfg         = &domain.AppConfig{}
+		appCfg      = &domain.AppConfig{}
+		limiterCfg  = &domain.LimiterConfig{}
 	)
 
 	flag.BoolVar(&showHelp, "h", false, "display help")
 	flag.BoolVar(&showVersion, "v", false, "display version")
-	flag.IntVar(&cfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
-	flag.IntVar(&cfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
-	flag.IntVar(&cfg.GrpcReadTimeout, "grpc-read-timeout", serverDefaultTimeout, "gRPC server read timeout")
-	flag.IntVar(&cfg.HttpReadTimeout, "http-read-timeout", serverDefaultTimeout, "http server read timeout")
-	flag.IntVar(&cfg.HttpReadHeaderTimeout, "read-header-timeout", serverDefaultTimeout,
+	flag.IntVar(&appCfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
+	flag.IntVar(&appCfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
+	flag.IntVar(&appCfg.GrpcReadTimeout, "grpc-read-timeout", serverDefaultTimeout, "gRPC server read timeout")
+	flag.IntVar(&appCfg.HttpReadTimeout, "http-read-timeout", serverDefaultTimeout, "http server read timeout")
+	flag.IntVar(&appCfg.HttpReadHeaderTimeout, "read-header-timeout", serverDefaultTimeout,
 		"http server read header timeout",
 	)
-	flag.IntVar(&cfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout, "http server write timeout")
+	flag.IntVar(&appCfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout, "http server write timeout")
+	flag.BoolVar(&appCfg.EnableLimiter, "enable-limiter", false, "enable rate limiter")
+
+	flag.StringVar(&limiterCfg.Host, "redis-host", redisDefaultHost, "redis host")
+	flag.IntVar(&limiterCfg.Port, "redis-port", redisDefaultPort, "redis port")
+	flag.IntVar(&limiterCfg.Db, "redis-db", redisDefaultDb, "redis database")
+	flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
+
 	flag.Parse()
 
 	if showHelp {
@@ -49,16 +63,24 @@ func LoadConfig() (*domain.AppConfig, error) {
 		os.Exit(1)
 	}
 
-	cfg.GrpcUseReflection = strings.ToLower(os.Getenv("GRPC_USE_REFLECTION")) != "false"
+	appCfg.GrpcUseReflection = strings.ToLower(os.Getenv("GRPC_USE_REFLECTION")) != "false"
 
-	cfg.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL")
-	if cfg.DatabaseUrl == "" {
-		return nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
+	appCfg.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL")
+	if appCfg.DatabaseUrl == "" {
+		return nil, nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
 	}
 
-	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid config: %w", err)
+	if err := appCfg.Validate(); err != nil {
+		return nil, nil, fmt.Errorf("invalid app config: %w", err)
 	}
 
-	return cfg, nil
+	if !appCfg.EnableLimiter {
+		return appCfg, nil, nil
+	}
+
+	if err := limiterCfg.Validate(); err != nil {
+		return nil, nil, fmt.Errorf("invalid rate limiter config: %w", err)
+	}
+
+	return appCfg, limiterCfg, nil
 }
