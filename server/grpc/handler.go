@@ -2,15 +2,20 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"net"
 	"strings"
 	"time"
 
+	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/ratelimiter"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -21,7 +26,7 @@ func (s *Server) GetIpInfo(ctx context.Context, in *v1.Ip) (*v1.Response, error)
 	response, err := ip_locator.LocateIp(s.d, in.GetIp())
 	if err != nil {
 		s.l.Println(err)
-		return nil, err
+		return nil, status.Error(getGrpcCode(err), err.Error())
 	}
 
 	return convertIpInfoDto(response), nil
@@ -34,7 +39,7 @@ func (s *Server) GetClientIp(ctx context.Context, _ *emptypb.Empty) (*v1.Respons
 	response, err := ip_locator.LocateIp(s.d, grpcClientIp(ctx))
 	if err != nil {
 		s.l.Println(err)
-		return nil, err
+		return nil, status.Error(getGrpcCode(err), err.Error())
 	}
 
 	return convertIpInfoDto(response), nil
@@ -75,4 +80,21 @@ func grpcClientIp(ctx context.Context) string {
 	}
 
 	return ""
+}
+
+func getGrpcCode(err error) codes.Code {
+	if err == nil {
+		return codes.OK
+	}
+	if errors.Is(err, ratelimiter.ErrRateLimitExceeded) {
+		return codes.ResourceExhausted
+	}
+	if errors.Is(err, ip_locator.ErrWrongIpAddress) {
+		return codes.InvalidArgument
+	}
+	if errors.Is(err, database.ErrNoIpAddress) {
+		return codes.NotFound
+	}
+
+	return codes.Internal
 }

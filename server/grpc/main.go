@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
+	"github.com/streamdp/ip-info/config"
 	"github.com/streamdp/ip-info/database"
-	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/pkg/ratelimiter"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 	"google.golang.org/grpc"
@@ -18,7 +18,7 @@ import (
 
 type Server struct {
 	srv *grpc.Server
-	cfg *domain.AppConfig
+	cfg *config.App
 
 	d database.Database
 	l *log.Logger
@@ -26,7 +26,7 @@ type Server struct {
 	v1.IpInfoServer
 }
 
-func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, cfg *domain.AppConfig) *Server {
+func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, cfg *config.App) *Server {
 	var opts []grpc.ServerOption
 
 	if cfg.EnableLimiter {

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/streamdp/ip-info/domain"
 )
 
 const (
@@ -24,12 +22,12 @@ const (
 
 var Version = "0.0.1"
 
-func LoadConfig() (*domain.AppConfig, *domain.LimiterConfig, error) {
+func LoadConfig() (*App, *Limiter, error) {
 	var (
 		showHelp    bool
 		showVersion bool
-		appCfg      = &domain.AppConfig{}
-		limiterCfg  = &domain.LimiterConfig{}
+		appCfg      = &App{}
+		limiterCfg  = &Limiter{}
 	)
 
 	flag.BoolVar(&showHelp, "h", false, "display help")

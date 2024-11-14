@@ -1,4 +1,4 @@
-package domain
+package config
 
 import (
 	"errors"
@@ -8,12 +8,12 @@ import (
 func TestAppConfig_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
-		cfg     *AppConfig
+		cfg     *App
 		wantErr error
 	}{
 		{
 			name: "app config is valid",
-			cfg: &AppConfig{
+			cfg: &App{
 				HttpPort:    8080,
 				GrpcPort:    8081,
 				DatabaseUrl: "postgres://postgres:postgres@localhost:5432/postgres",
@@ -22,7 +22,7 @@ func TestAppConfig_Validate(t *testing.T) {
 		},
 		{
 			name: "wrong http port",
-			cfg: &AppConfig{
+			cfg: &App{
 				HttpPort:    -1,
 				GrpcPort:    8081,
 				DatabaseUrl: "postgres://postgres:postgres@localhost:5432/postgres",
@@ -31,7 +31,7 @@ func TestAppConfig_Validate(t *testing.T) {
 		},
 		{
 			name: "wrong grpc port",
-			cfg: &AppConfig{
+			cfg: &App{
 				HttpPort:    8080,
 				GrpcPort:    -1,
 				DatabaseUrl: "postgres://postgres:postgres@localhost:5432/postgres",
@@ -40,7 +40,7 @@ func TestAppConfig_Validate(t *testing.T) {
 		},
 		{
 			name: "wrong database url",
-			cfg: &AppConfig{
+			cfg: &App{
 				HttpPort:    8080,
 				GrpcPort:    8081,
 				DatabaseUrl: "",

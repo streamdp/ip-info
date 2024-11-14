@@ -7,6 +7,7 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/ratelimiter"
 )
 
 func Test_httpClientIp(t *testing.T) {
@@ -66,6 +67,11 @@ func Test_getHttpStatus(t *testing.T) {
 			name: "get http.StatusOk",
 			err:  nil,
 			want: http.StatusOK,
+		},
+		{
+			name: "get http.StatusBadRequest",
+			err:  ratelimiter.ErrRateLimitExceeded,
+			want: http.StatusTooManyRequests,
 		},
 		{
 			name: "get http.StatusBadRequest",

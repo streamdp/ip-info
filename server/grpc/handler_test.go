@@ -2,13 +2,17 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"net"
 	"reflect"
 	"testing"
 
+	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/ratelimiter"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 )
@@ -97,6 +101,47 @@ func Test_grpcClientIp(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := grpcClientIp(tt.ctx); got != tt.want {
 				t.Errorf("grpcClientIp() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_getGrpcCode(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want codes.Code
+	}{
+		{
+			name: "get codes.OK",
+			err:  nil,
+			want: codes.OK,
+		},
+		{
+			name: "get codes.ResourceExhausted",
+			err:  ratelimiter.ErrRateLimitExceeded,
+			want: codes.ResourceExhausted,
+		},
+		{
+			name: "get codes.InvalidArgument",
+			err:  ip_locator.ErrWrongIpAddress,
+			want: codes.InvalidArgument,
+		},
+		{
+			name: "get codes.NotFound",
+			err:  database.ErrNoIpAddress,
+			want: codes.NotFound,
+		},
+		{
+			name: "get codes.Internal",
+			err:  errors.New("some error"),
+			want: codes.Internal,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getGrpcCode(tt.err); got != tt.want {
+				t.Errorf("getGrpcStatus() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -1,4 +1,4 @@
-package domain
+package config
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ var (
 	errEmptyDatabaseUrl = errors.New("database url cannot be blank")
 )
 
-type AppConfig struct {
+type App struct {
 	HttpPort              int
 	GrpcPort              int
 	GrpcUseReflection     bool
@@ -23,7 +23,7 @@ type AppConfig struct {
 	EnableLimiter         bool
 }
 
-func (c *AppConfig) Validate() error {
+func (c *App) Validate() error {
 	if c.HttpPort < 0 || c.HttpPort > 65535 {
 		return fmt.Errorf("http: %w", errWrongNetworkPort)
 	}

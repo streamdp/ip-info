@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-redis/redis_rate/v10"
 	"github.com/redis/go-redis/v9"
-	"github.com/streamdp/ip-info/domain"
+	"github.com/streamdp/ip-info/config"
 )
 
 const limiterReadTimeout = time.Second
@@ -25,13 +25,13 @@ type rateLimiter struct {
 	ctx    context.Context
 	client *redis.Client
 
-	cfg *domain.LimiterConfig
+	cfg *config.Limiter
 
 	limiter *redis_rate.Limiter
 }
 
-func New(ctx context.Context, cfg *domain.LimiterConfig) (Limiter, error) {
-	opt, err := getOptions(cfg)
+func New(ctx context.Context, cfg *config.Limiter) (Limiter, error) {
+	opt, err := cfg.Options()
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse redis os environment variables: %w", err)
 	}
