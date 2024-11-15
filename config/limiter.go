@@ -56,7 +56,7 @@ func (l *Limiter) Options() (*redis.Options, error) {
 	if p := os.Getenv("REDIS_PORT"); p != "" {
 		n, err := strconv.Atoi(p)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("invalid REDIS_PORT: %w", err)
 		}
 		l.Port = n
 	}
@@ -68,7 +68,7 @@ func (l *Limiter) Options() (*redis.Options, error) {
 	if d := os.Getenv("REDIS_DB"); d != "" {
 		n, err := strconv.Atoi(d)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("invalid REDIS_DB: %w", err)
 		}
 		l.Db = n
 	}

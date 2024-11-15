@@ -55,7 +55,7 @@ func (rl *rateLimiter) Limit(ip string) error {
 
 	res, err := rl.limiter.Allow(ctx, ip, redis_rate.PerSecond(rl.cfg.RateLimit))
 	if err != nil {
-		return err
+		return fmt.Errorf("rate_limiter: %w", err)
 	}
 
 	if res.Remaining == 0 {

@@ -15,10 +15,13 @@ services:
       restart: always
 
    ip-info:
-      # build: .
-      image: streamdp/ip-info:v0.1.2
+      #build: .
+      image: streamdp/ip-info:v0.2.0
       environment:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable
+         - REDIS_URL=redis://:QwzttMUvafxASK2sja0po2m9oLLe7nk@redis:6379/0
+         - IP_INFO_ENABLE_LIMITER=true
+         - IP_INFO_RATE_LIMIT=15
       ports:
          - "8080:8080"
          - "50051:50051"
@@ -32,13 +35,14 @@ services:
       restart: always
       depends_on:
          - postgres
+         - redis
 
    redis:
       image: redis:7.4.1-alpine3.20
       container_name: redis
       ports:
          - '6379:6379'
-      command: redis-server --save 20 1 --loglevel warning  --maxmemory 64mb --maxmemory-policy allkeys-lfu --requirepass VJzuuSkaUfpv3LkuPgq6qRBNjpywKdqU
+      command: redis-server --save 20 1 --loglevel warning  --maxmemory 64mb --maxmemory-policy allkeys-lfu --requirepass QwzttMUvafxASK2sja0po2m9oLLe7nk
       volumes:
          - redis:/data
       restart: always

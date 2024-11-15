@@ -30,9 +30,7 @@ func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, 
 	var opts []grpc.ServerOption
 
 	if cfg.EnableLimiter {
-		opts = append(opts, grpc.ChainUnaryInterceptor(
-			UnaryServerInterceptor(limiter),
-		))
+		opts = append(opts, grpc.ChainUnaryInterceptor(rateLimiterUSI(limiter)))
 	}
 
 	gRpcSrv := grpc.NewServer(opts...)

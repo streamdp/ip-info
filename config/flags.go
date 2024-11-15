@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -63,21 +64,30 @@ func LoadConfig() (*App, *Limiter, error) {
 
 	appCfg.GrpcUseReflection = strings.ToLower(os.Getenv("GRPC_USE_REFLECTION")) != "false"
 
-	appCfg.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL")
-	if appCfg.DatabaseUrl == "" {
+	if appCfg.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL"); appCfg.DatabaseUrl == "" {
 		return nil, nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
+	}
+
+	if rl := os.Getenv("IP_INFO_RATE_LIMIT"); rl != "" {
+		n, err := strconv.Atoi(rl)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid IP_INFO_RATE_LIMIT: %w", err)
+		}
+		limiterCfg.RateLimit = n
+	}
+
+	if !appCfg.EnableLimiter {
+		appCfg.EnableLimiter = strings.ToLower(os.Getenv("IP_INFO_ENABLE_LIMITER")) == "true"
 	}
 
 	if err := appCfg.Validate(); err != nil {
 		return nil, nil, fmt.Errorf("invalid app config: %w", err)
 	}
 
-	if !appCfg.EnableLimiter {
-		return appCfg, nil, nil
-	}
-
-	if err := limiterCfg.Validate(); err != nil {
-		return nil, nil, fmt.Errorf("invalid rate limiter config: %w", err)
+	if appCfg.EnableLimiter {
+		if err := limiterCfg.Validate(); err != nil {
+			return nil, nil, fmt.Errorf("invalid rate limiter config: %w", err)
+		}
 	}
 
 	return appCfg, limiterCfg, nil

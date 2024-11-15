@@ -86,3 +86,72 @@ Summary:
   Average:      1.09 ms
   Requests/sec: 1485.69
 ```
+### Rate limiting
+To enable rate limiting, you need to start the _redis_ server and run _ip-info_ microservice with the 
+**-enable-limiter** flag or **IP_INFO_ENABLE_LIMITER** environment variable. The default rate limit value is 10 requests
+per second per client, you can adjust it with the **-rate-limit** flag or **IP_INFO_RATE_LIMIT** environment variable. 
+```shell
+version: "3.4"
+services:
+   ip-info:
+      image: streamdp/ip-info:v0.2.0
+      container_name: ip-info
+      environment:
+         - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable
+         - IP_INFO_ENABLE_LIMITER=true
+         - IP_INFO_RATE_LIMIT=15 # default 10 requests per second per client
+         - REDIS_URL=redis://:qwerty@redis:6379/0
+      ports:
+         - "8080:8080"
+         - "50051:50051"
+      restart: always
+   
+   redis:
+      image: redis
+      container_name: redis
+      ports:
+         - '6379:6379'
+      command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lfu --requirepass qwerty
+      volumes:
+         - redis:/data
+      restart: always
+
+volumes:
+   redis:
+      driver: local     
+```
+```shell
+$ docker-compose up -d
+```
+### Help 
+You can see all available command flags when you run the application with the -h flag.
+```shell
+$ ./bin/app -h
+ip-info is a microservice for IP location determination
+
+Usage of ./bin/app:
+  -enable-limiter
+        enable rate limiter
+  -grpc-port int
+        grpc server port (default 50051)
+  -grpc-read-timeout int
+        gRPC server read timeout (default 5000)
+  -h    display help
+  -http-port int
+        http server port (default 8080)
+  -http-read-timeout int
+        http server read timeout (default 5000)
+  -rate-limit int
+        rate limit, rps per client (default 10)
+  -read-header-timeout int
+        http server read header timeout (default 5000)
+  -redis-db int
+        redis database
+  -redis-host string
+        redis host (default "127.0.0.1")
+  -redis-port int
+        redis port (default 6379)
+  -v    display version
+  -write-timeout int
+        http server write timeout (default 5000)
+```
