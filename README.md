@@ -110,15 +110,9 @@ services:
       image: redis
       container_name: redis
       ports:
-         - '6379:6379'
-      command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lfu --requirepass qwerty
-      volumes:
-         - redis:/data
+         - "6379:6379"
+      command: redis-server --save "" --maxmemory 64mb --maxmemory-policy allkeys-lfu --requirepass qwerty
       restart: always
-
-volumes:
-   redis:
-      driver: local     
 ```
 ```shell
 $ docker-compose up -d
