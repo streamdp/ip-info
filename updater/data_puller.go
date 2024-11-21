@@ -1,4 +1,4 @@
-package puller
+package updater
 
 import (
 	"context"

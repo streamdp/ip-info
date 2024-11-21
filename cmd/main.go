@@ -9,9 +9,9 @@ import (
 	"github.com/streamdp/ip-info/config"
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/pkg/ratelimiter"
-	"github.com/streamdp/ip-info/puller"
 	"github.com/streamdp/ip-info/server/grpc"
 	"github.com/streamdp/ip-info/server/rest"
+	"github.com/streamdp/ip-info/updater"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 		}
 	}(d)
 
-	go puller.New(ctx, d, l).PullUpdates()
+	go updater.New(ctx, d, l).PullUpdates()
 
 	var limiter ratelimiter.Limiter
 	if appCfg.EnableLimiter {
