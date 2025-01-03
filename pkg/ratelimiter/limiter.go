@@ -17,8 +17,6 @@ var ErrRateLimitExceeded = errors.New("rate limit exceeded")
 
 type Limiter interface {
 	Limit(ip string) error
-
-	Close() error
 }
 
 type rateLimiter struct {
@@ -30,15 +28,7 @@ type rateLimiter struct {
 	limiter *redis_rate.Limiter
 }
 
-func New(ctx context.Context, cfg *config.Limiter) (Limiter, error) {
-	opt, err := cfg.Options()
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse redis os environment variables: %w", err)
-	}
-
-	client := redis.NewClient(opt)
-	_ = client.FlushDB(ctx).Err()
-
+func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (Limiter, error) {
 	return &rateLimiter{
 		client: client,
 		ctx:    ctx,
@@ -63,8 +53,4 @@ func (rl *rateLimiter) Limit(ip string) error {
 	}
 
 	return nil
-}
-
-func (rl *rateLimiter) Close() error {
-	return rl.client.Close()
 }

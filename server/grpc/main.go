@@ -6,8 +6,8 @@ import (
 	"net"
 
 	"github.com/streamdp/ip-info/config"
-	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/pkg/ratelimiter"
+	"github.com/streamdp/ip-info/server"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 	"google.golang.org/grpc"
 	_ "google.golang.org/grpc/encoding/gzip"
@@ -17,16 +17,14 @@ import (
 //go:generate protoc ./api/proto/ip_info.proto --go_out=api/ --go-grpc_out=api/
 
 type Server struct {
-	srv *grpc.Server
-	cfg *config.App
-
-	d database.Database
-	l *log.Logger
-
+	srv     *grpc.Server
+	locator server.Locator
+	cfg     *config.App
+	l       *log.Logger
 	v1.IpInfoServer
 }
 
-func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, cfg *config.App) *Server {
+func NewServer(locator server.Locator, l *log.Logger, limiter ratelimiter.Limiter, cfg *config.App) *Server {
 	var opts []grpc.ServerOption
 
 	if cfg.EnableLimiter {
@@ -36,11 +34,10 @@ func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, 
 	gRpcSrv := grpc.NewServer(opts...)
 
 	ipInfoSrv := &Server{
-		srv: gRpcSrv,
-		cfg: cfg,
-
-		d: d,
-		l: l,
+		locator: locator,
+		srv:     gRpcSrv,
+		cfg:     cfg,
+		l:       l,
 	}
 
 	v1.RegisterIpInfoServer(gRpcSrv, ipInfoSrv)

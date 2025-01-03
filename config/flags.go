@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -19,16 +20,21 @@ const (
 	redisDefaultDb   = 0
 
 	defaultRateLimit = 10
+
+	defaultCacheProvider = "memory"
+	defaultCacheTTL      = 3600
 )
 
 var Version = "0.0.1"
 
-func LoadConfig() (*App, *Limiter, error) {
+func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	var (
 		showHelp    bool
 		showVersion bool
 		appCfg      = &App{}
+		redisCfg    = &Redis{}
 		limiterCfg  = &Limiter{}
+		cacheCfg    = &Cache{}
 	)
 
 	flag.BoolVar(&showHelp, "h", false, "display help")
@@ -42,11 +48,15 @@ func LoadConfig() (*App, *Limiter, error) {
 	)
 	flag.IntVar(&appCfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout, "http server write timeout")
 	flag.BoolVar(&appCfg.EnableLimiter, "enable-limiter", false, "enable rate limiter")
+	flag.BoolVar(&appCfg.EnableCache, "enable-cache", true, "enable cache")
+	flag.StringVar(&appCfg.CacheProvider, "cache-provider", defaultCacheProvider, "where to store cache "+
+		"entries - in redis or in memory")
 
-	flag.StringVar(&limiterCfg.Host, "redis-host", redisDefaultHost, "redis host")
-	flag.IntVar(&limiterCfg.Port, "redis-port", redisDefaultPort, "redis port")
-	flag.IntVar(&limiterCfg.Db, "redis-db", redisDefaultDb, "redis database")
+	flag.StringVar(&redisCfg.Host, "redis-host", redisDefaultHost, "redis host")
+	flag.IntVar(&redisCfg.Port, "redis-port", redisDefaultPort, "redis port")
+	flag.IntVar(&redisCfg.Db, "redis-db", redisDefaultDb, "redis database")
 	flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
+	flag.IntVar(&cacheCfg.TTL, "cache-ttl", defaultCacheTTL, "cache ttl in seconds")
 
 	flag.Parse()
 
@@ -65,30 +75,54 @@ func LoadConfig() (*App, *Limiter, error) {
 	appCfg.GrpcUseReflection = strings.ToLower(os.Getenv("GRPC_USE_REFLECTION")) != "false"
 
 	if appCfg.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL"); appCfg.DatabaseUrl == "" {
-		return nil, nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
+		return nil, nil, nil, nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
 	}
 
 	if rl := os.Getenv("IP_INFO_RATE_LIMIT"); rl != "" {
-		n, err := strconv.Atoi(rl)
+		n, err := strconv.Atoi(strings.TrimSpace(rl))
 		if err != nil {
-			return nil, nil, fmt.Errorf("invalid IP_INFO_RATE_LIMIT: %w", err)
+			return nil, nil, nil, nil, fmt.Errorf("invalid IP_INFO_RATE_LIMIT: %w", err)
 		}
 		limiterCfg.RateLimit = n
+	}
+
+	if cp := os.Getenv("IP_INFO_CACHE_PROVIDER"); cp != "" {
+		if slices.Contains([]string{"redis", "memory"}, cp) {
+			appCfg.CacheProvider = cp
+		}
+	}
+
+	if ttl := os.Getenv("IP_INFO_CACHE_TTL"); ttl != "" {
+		n, err := strconv.Atoi(strings.TrimSpace(ttl))
+		if err != nil {
+			return nil, nil, nil, nil, fmt.Errorf("invalid IP_INFO_CACHE_TTL: %w", err)
+		}
+		cacheCfg.TTL = n
 	}
 
 	if !appCfg.EnableLimiter {
 		appCfg.EnableLimiter = strings.ToLower(os.Getenv("IP_INFO_ENABLE_LIMITER")) == "true"
 	}
 
+	if !appCfg.EnableCache {
+		appCfg.EnableCache = strings.ToLower(os.Getenv("IP_INFO_ENABLE_CACHE")) == "true"
+	}
+
 	if err := appCfg.Validate(); err != nil {
-		return nil, nil, fmt.Errorf("invalid app config: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("invalid app config: %w", err)
 	}
 
 	if appCfg.EnableLimiter {
 		if err := limiterCfg.Validate(); err != nil {
-			return nil, nil, fmt.Errorf("invalid rate limiter config: %w", err)
+			return nil, nil, nil, nil, fmt.Errorf("invalid rate limiter config: %w", err)
 		}
 	}
 
-	return appCfg, limiterCfg, nil
+	if appCfg.EnableCache {
+		if err := cacheCfg.Validate(); err != nil {
+			return nil, nil, nil, nil, fmt.Errorf("invalid cache config: %w", err)
+		}
+	}
+
+	return appCfg, redisCfg, limiterCfg, cacheCfg, nil
 }

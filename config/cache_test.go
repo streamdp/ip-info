@@ -4,23 +4,23 @@ import (
 	"testing"
 )
 
-func TestLimiter_Validate(t *testing.T) {
+func TestCache_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
-		cfg     *Limiter
+		cfg     *Cache
 		wantErr bool
 	}{
 		{
-			name: "limiter config is valid",
-			cfg: &Limiter{
-				RateLimit: 100,
+			name: "cache config is valid",
+			cfg: &Cache{
+				TTL: 100,
 			},
 			wantErr: false,
 		},
 		{
-			name: "wrong rate limit",
-			cfg: &Limiter{
-				RateLimit: -1,
+			name: "wrong ttl",
+			cfg: &Cache{
+				TTL: -1,
 			},
 			wantErr: true,
 		},

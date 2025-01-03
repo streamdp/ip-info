@@ -18,7 +18,7 @@ func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Reques
 			ipString = httpClientIp(r)
 		}
 
-		ipInfo, err := ip_locator.LocateIp(s.d, ipString)
+		ipInfo, err := s.locator.GetIpInfo(ipString)
 		if err != nil {
 			s.l.Println(err)
 		}

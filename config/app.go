@@ -21,6 +21,8 @@ type App struct {
 	HttpWriteTimeout      int
 	Version               string
 	EnableLimiter         bool
+	EnableCache           bool
+	CacheProvider         string
 }
 
 func (c *App) Validate() error {

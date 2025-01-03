@@ -17,15 +17,45 @@ const (
 
 var ErrWrongIpAddress = errors.New("could not parse the IP address")
 
-func LocateIp(d database.Database, ipString string) (ipInfo *domain.IpInfo, err error) {
+type IpInfoCache interface {
+	Set(*domain.IpInfo) error
+	Get(string) (*domain.IpInfo, error)
+}
+
+type IpLocator struct {
+	d database.Database
+	c IpInfoCache
+}
+
+func New(d database.Database, c IpInfoCache) *IpLocator {
+	return &IpLocator{
+		d: d,
+		c: c,
+	}
+}
+
+func (l *IpLocator) GetIpInfo(ipString string) (ipInfo *domain.IpInfo, err error) {
 	ip := net.ParseIP(ipString)
 	if ip == nil {
 		return nil, fmt.Errorf("%w: %s", ErrWrongIpAddress, ipString)
 	}
 
-	if ipInfo, err = d.IpInfo(ip); err != nil {
-		return nil, fmt.Errorf("could not get ip location: %w", err)
+	if l.c == nil {
+		if ipInfo, err = l.d.IpInfo(ip); err != nil {
+			return nil, fmt.Errorf("could not get ip location: %w", err)
+		}
+
+		return ipInfo, nil
 	}
 
-	return
+	if ipInfo, err = l.c.Get(ipString); err != nil {
+		if ipInfo, err = l.d.IpInfo(ip); err != nil {
+			return nil, fmt.Errorf("could not get ip location: %w", err)
+		}
+		if err = l.c.Set(ipInfo); err != nil {
+			return nil, fmt.Errorf("cache: %w", err)
+		}
+	}
+
+	return ipInfo, nil
 }

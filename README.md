@@ -15,6 +15,9 @@ ensure that the location data is always accurate and up-to-date.
 the location associated with a given IP address.
 * **HTTP and gRPC Support:** The microservice can be accessed and interacted with using both protocols, providing 
 flexibility in how it can be integrated into other systems or applications.
+* **Rate limiting:** The microservice provides per-client rate limits and sends a **429** HTTP response when the client makes 
+requests too frequently.
+* **Caching:** The microservice implements caching to improve availability and reduce database load. 
 ### Usage example:
 Start postgresql and ip-info containers:
 ```shell
@@ -64,27 +67,56 @@ $ grpcurl  -plaintext -d '{"ip": "211.27.38.98"}' 127.0.0.1:50051 IpInfo/GetIpIn
 ```
 ### Benchmarking (i3-7100U CPU @ 2.40GHz)
 IP randomization is not supported for security reasons, the difference in tests is about 10% for cases where 1 IP is 
-requested and when the IP is requested randomly (currently internal query caches are not implemented).
-* **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey):
+requested and when the IP is requested randomly.
+* **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey) **without** cache:
 ```shell
 $ hey -c 2 -n 10000 http://127.0.0.1:8080/ip-info?ip=8.8.8.8
-Summary:
   Total:        3.7542 secs
   Slowest:      0.0097 secs
   Fastest:      0.0005 secs
   Average:      0.0007 secs
   Requests/sec: 2663.6510
 ```
-* **gRPC** benchmarking with [ghz - Simple gRPC load testing tool](https://github.com/bojand/ghz):
+when **redis** cache used:
+```shell
+  Total:        2.1551 secs
+  Slowest:      0.0355 secs
+  Fastest:      0.0003 secs
+  Average:      0.0004 secs
+  Requests/sec: 4640.0855
+```
+when **memory** cache used:
+```shell
+  Total:        1.0665 secs
+  Slowest:      0.0032 secs
+  Fastest:      0.0001 secs
+  Average:      0.0002 secs
+  Requests/sec: 9376.7398
+```
+* **gRPC** benchmarking with [ghz - Simple gRPC load testing tool](https://github.com/bojand/ghz) **without** cache:
 ```shell
 $ ghz -c 2 -n 10000 127.0.0.1:50051 --call IpInfo.GetIpInfo -d '{"ip":"8.8.8.8"}' --insecure 
-Summary:
-  Count:        10000
   Total:        6.73 s
   Slowest:      8.95 ms
   Fastest:      0.61 ms
   Average:      1.09 ms
   Requests/sec: 1485.69
+```
+when **redis** cache used:
+```shell
+  Total:        4.40 s
+  Slowest:      3.55 ms
+  Fastest:      0.37 ms
+  Average:      0.63 ms
+  Requests/sec: 2270.86
+```
+when **memory** cache used:
+```shell
+  Total:        3.04 s
+  Slowest:      2.41 ms
+  Fastest:      0.19 ms
+  Average:      0.37 ms
+  Requests/sec: 3285.49
 ```
 ### Rate limiting
 To enable rate limiting, you need to start the _redis_ server and run _ip-info_ microservice with the 
@@ -117,6 +149,19 @@ services:
 ```shell
 $ docker-compose up -d
 ```
+### Caching
+Caching in memory is enabled by default, to disable you need to run _ip-info_ microservice with the
+**-enable-cache**=*false* flag or **IP_INFO_ENABLE_CACHE**=*false* environment variable. The default **TTL** value is 
+**3600** seconds, you can adjust it with the **-cache-ttl** flag or **IP_INFO_CACHE_TTL** environment variable. You could 
+choose cache provider between **redis** and **memory**, using **-cache-provider** flag or **IP_INFO_CACHE_PROVIDER** 
+environment variable. 
+```shell
+      environment:
+         - IP_INFO_ENABLE_CACHE=true
+         - IP_INFO_CACHE_TTL=1800 # default 3600 seconds
+         - IP_INFO_CACHE_PROVIDER=redis # default "memory"
+         - REDIS_URL=redis://:qwerty@redis:6379/0
+```
 ### Help 
 You can see all available command flags when you run the application with the -h flag.
 ```shell
@@ -124,28 +169,32 @@ $ ./bin/app -h
 ip-info is a microservice for IP location determination
 
 Usage of ./bin/app:
+ -cache-ttl int
+    	cache ttl in seconds (default 3600)
+  -enable-cache
+    	enable cache
   -enable-limiter
-        enable rate limiter
+    	enable rate limiter
   -grpc-port int
-        grpc server port (default 50051)
+    	grpc server port (default 50051)
   -grpc-read-timeout int
-        gRPC server read timeout (default 5000)
-  -h    display help
+    	gRPC server read timeout (default 5000)
+  -h	display help
   -http-port int
-        http server port (default 8080)
+    	http server port (default 8080)
   -http-read-timeout int
-        http server read timeout (default 5000)
+    	http server read timeout (default 5000)
   -rate-limit int
-        rate limit, rps per client (default 10)
+    	rate limit, rps per client (default 10)
   -read-header-timeout int
-        http server read header timeout (default 5000)
+    	http server read header timeout (default 5000)
   -redis-db int
-        redis database
+    	redis database
   -redis-host string
-        redis host (default "127.0.0.1")
+    	redis host (default "127.0.0.1")
   -redis-port int
-        redis port (default 6379)
-  -v    display version
+    	redis port (default 6379)
+  -v	display version
   -write-timeout int
-        http server write timeout (default 5000)
+    	http server write timeout (default 5000)
 ```

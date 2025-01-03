@@ -8,18 +8,16 @@ import (
 	"time"
 
 	"github.com/streamdp/ip-info/config"
-	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/pkg/ratelimiter"
+	"github.com/streamdp/ip-info/server"
 )
 
 type Server struct {
 	srv     *http.Server
+	locator server.Locator
 	limiter ratelimiter.Limiter
-
-	cfg *config.App
-
-	d database.Database
-	l *log.Logger
+	cfg     *config.App
+	l       *log.Logger
 }
 
 func (s *Server) initRouter() http.Handler {
@@ -31,8 +29,9 @@ func (s *Server) initRouter() http.Handler {
 	return mux
 }
 
-func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, cfg *config.App) *Server {
+func NewServer(locator server.Locator, l *log.Logger, limiter ratelimiter.Limiter, cfg *config.App) *Server {
 	return &Server{
+		locator: locator,
 		srv: &http.Server{
 			Addr:              fmt.Sprintf(":%d", cfg.HttpPort),
 			ReadTimeout:       time.Duration(cfg.HttpReadTimeout) * time.Millisecond,
@@ -40,11 +39,8 @@ func NewServer(d database.Database, l *log.Logger, limiter ratelimiter.Limiter, 
 			WriteTimeout:      time.Duration(cfg.HttpWriteTimeout) * time.Millisecond,
 		},
 		limiter: limiter,
-
-		cfg: cfg,
-
-		d: d,
-		l: l,
+		cfg:     cfg,
+		l:       l,
 	}
 }
 

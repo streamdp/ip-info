@@ -15,7 +15,11 @@ type IpInfo struct {
 	Longitude float64 `json:"longitude" db:"longitude"`
 }
 
-func (i *IpInfo) String() string {
+func (i *IpInfo) Bytes() []byte {
 	b, _ := json.MarshalIndent(i, "", "  ")
-	return string(b)
+	return b
+}
+
+func (i *IpInfo) String() string {
+	return string(i.Bytes())
 }
