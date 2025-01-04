@@ -151,7 +151,7 @@ $ docker-compose up -d
 ```
 ### Caching
 Caching in memory is enabled by default, to disable you need to run _ip-info_ microservice with the
-**-disable-cache** flag or **IP_INFO_DISABLE_CACHE**=*true* environment variable. The default **TTL** value is 
+**-disable-cache** flag or **IP_INFO_DISABLE_CACHE=true** environment variable. The default **TTL** value is 
 **3600** seconds, you can adjust it with the **-cache-ttl** flag or **IP_INFO_CACHE_TTL** environment variable. You could 
 choose cache provider between **redis** and **memory**, using **-cache-provider** flag or **IP_INFO_CACHE_PROVIDER** 
 environment variable. 
