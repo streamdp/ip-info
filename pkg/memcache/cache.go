@@ -17,15 +17,15 @@ type record struct {
 	expiredAt time.Time
 }
 
-type Cache struct {
+type MemCache struct {
 	ctx context.Context
 
 	c  map[string]*record
 	mu *sync.RWMutex
 }
 
-func New(ctx context.Context) *Cache {
-	c := &Cache{
+func New(ctx context.Context) *MemCache {
+	c := &MemCache{
 		ctx: ctx,
 
 		c:  map[string]*record{},
@@ -37,45 +37,45 @@ func New(ctx context.Context) *Cache {
 	return c
 }
 
-func (c *Cache) processExpiration() {
+func (m *MemCache) processExpiration() {
 	t := time.NewTimer(expirationCheckInterval)
 	defer t.Stop()
 
 	for {
 		select {
-		case <-c.ctx.Done():
+		case <-m.ctx.Done():
 			return
 		case <-t.C:
 			t.Reset(expirationCheckInterval)
 
-			if len(c.c) == 0 {
+			if len(m.c) == 0 {
 				continue
 			}
 
 			now := time.Now()
-			c.mu.Lock()
-			maps.DeleteFunc(c.c, func(_ string, v *record) bool { return now.After(v.expiredAt) })
-			c.mu.Unlock()
+			m.mu.Lock()
+			maps.DeleteFunc(m.c, func(_ string, v *record) bool { return now.After(v.expiredAt) })
+			m.mu.Unlock()
 		}
 	}
 }
 
-func (c *Cache) Get(_ context.Context, key string) ([]byte, error) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+func (m *MemCache) Get(_ context.Context, key string) ([]byte, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 
-	if r, ok := c.c[key]; ok {
+	if r, ok := m.c[key]; ok {
 		return r.value.([]byte), nil
 	}
 
 	return nil, errKeyNotFound
 }
 
-func (c *Cache) Set(_ context.Context, key string, value interface{}, expiration time.Duration) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+func (m *MemCache) Set(_ context.Context, key string, value interface{}, expiration time.Duration) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	c.c[key] = &record{
+	m.c[key] = &record{
 		value:     value,
 		expiredAt: time.Now().Add(expiration),
 	}

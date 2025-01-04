@@ -25,7 +25,13 @@ const (
 	defaultCacheTTL      = 3600
 )
 
-var Version = "0.0.1"
+var (
+	Version        = "0.0.1"
+	cacheProviders = []string{
+		"memory",
+		"redis",
+	}
+)
 
 func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	var (
@@ -37,26 +43,59 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 		cacheCfg    = &Cache{}
 	)
 
-	flag.BoolVar(&showHelp, "h", false, "display help")
-	flag.BoolVar(&showVersion, "v", false, "display version")
-	flag.IntVar(&appCfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
-	flag.IntVar(&appCfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
-	flag.IntVar(&appCfg.GrpcReadTimeout, "grpc-read-timeout", serverDefaultTimeout, "gRPC server read timeout")
-	flag.IntVar(&appCfg.HttpReadTimeout, "http-read-timeout", serverDefaultTimeout, "http server read timeout")
-	flag.IntVar(&appCfg.HttpReadHeaderTimeout, "read-header-timeout", serverDefaultTimeout,
-		"http server read header timeout",
-	)
-	flag.IntVar(&appCfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout, "http server write timeout")
-	flag.BoolVar(&appCfg.EnableLimiter, "enable-limiter", false, "enable rate limiter")
-	flag.BoolVar(&appCfg.EnableCache, "enable-cache", true, "enable cache")
-	flag.StringVar(&appCfg.CacheProvider, "cache-provider", defaultCacheProvider, "where to store cache "+
-		"entries - in redis or in memory")
-
-	flag.StringVar(&redisCfg.Host, "redis-host", redisDefaultHost, "redis host")
-	flag.IntVar(&redisCfg.Port, "redis-port", redisDefaultPort, "redis port")
-	flag.IntVar(&redisCfg.Db, "redis-db", redisDefaultDb, "redis database")
-	flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
-	flag.IntVar(&cacheCfg.TTL, "cache-ttl", defaultCacheTTL, "cache ttl in seconds")
+	if flag.Lookup("h") == nil {
+		flag.BoolVar(&showHelp, "h", false, "display help")
+	}
+	if flag.Lookup("v") == nil {
+		flag.BoolVar(&showVersion, "v", false, "display version")
+	}
+	if flag.Lookup("http-port") == nil {
+		flag.IntVar(&appCfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
+	}
+	if flag.Lookup("grpc-port") == nil {
+		flag.IntVar(&appCfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
+	}
+	if flag.Lookup("grpc-read-timeout") == nil {
+		flag.IntVar(&appCfg.GrpcReadTimeout, "grpc-read-timeout", serverDefaultTimeout,
+			"gRPC server read timeout")
+	}
+	if flag.Lookup("http-read-timeout") == nil {
+		flag.IntVar(&appCfg.HttpReadTimeout, "http-read-timeout", serverDefaultTimeout,
+			"http server read timeout")
+	}
+	if flag.Lookup("read-header-timeout") == nil {
+		flag.IntVar(&appCfg.HttpReadHeaderTimeout, "read-header-timeout", serverDefaultTimeout,
+			"http server read header timeout")
+	}
+	if flag.Lookup("write-timeout") == nil {
+		flag.IntVar(&appCfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout,
+			"http server write timeout")
+	}
+	if flag.Lookup("enable-limiter") == nil {
+		flag.BoolVar(&appCfg.EnableLimiter, "enable-limiter", false, "enable rate limiter")
+	}
+	if flag.Lookup("enable-cache") == nil {
+		flag.BoolVar(&appCfg.EnableCache, "enable-cache", true, "enable cache")
+	}
+	if flag.Lookup("cache-provider") == nil {
+		flag.StringVar(&appCfg.CacheProvider, "cache-provider", defaultCacheProvider, "where to store "+
+			"cache entries - in redis or in memory")
+	}
+	if flag.Lookup("redis-host") == nil {
+		flag.StringVar(&redisCfg.Host, "redis-host", redisDefaultHost, "redis host")
+	}
+	if flag.Lookup("redis-port") == nil {
+		flag.IntVar(&redisCfg.Port, "redis-port", redisDefaultPort, "redis port")
+	}
+	if flag.Lookup("redis-db") == nil {
+		flag.IntVar(&redisCfg.Db, "redis-db", redisDefaultDb, "redis database")
+	}
+	if flag.Lookup("rate-limit") == nil {
+		flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
+	}
+	if flag.Lookup("cache-ttl") == nil {
+		flag.IntVar(&cacheCfg.TTL, "cache-ttl", defaultCacheTTL, "cache ttl in seconds")
+	}
 
 	flag.Parse()
 
@@ -64,12 +103,12 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 		fmt.Println("ip-info is a microservice for IP location determination")
 		fmt.Println("")
 		flag.Usage()
-		os.Exit(1)
+		os.Exit(0)
 	}
 
 	if showVersion {
 		fmt.Println("ip-info version: " + Version)
-		os.Exit(1)
+		os.Exit(0)
 	}
 
 	appCfg.GrpcUseReflection = strings.ToLower(os.Getenv("GRPC_USE_REFLECTION")) != "false"
@@ -87,7 +126,7 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	}
 
 	if cp := os.Getenv("IP_INFO_CACHE_PROVIDER"); cp != "" {
-		if slices.Contains([]string{"redis", "memory"}, cp) {
+		if slices.Contains(cacheProviders, cp) {
 			appCfg.CacheProvider = cp
 		}
 	}
@@ -100,22 +139,22 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 		cacheCfg.TTL = n
 	}
 
-	if !appCfg.EnableLimiter {
-		appCfg.EnableLimiter = strings.ToLower(os.Getenv("IP_INFO_ENABLE_LIMITER")) == "true"
-	}
-
-	if !appCfg.EnableCache {
-		appCfg.EnableCache = strings.ToLower(os.Getenv("IP_INFO_ENABLE_CACHE")) == "true"
-	}
-
 	if err := appCfg.Validate(); err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("invalid app config: %w", err)
+	}
+
+	if !appCfg.EnableLimiter {
+		appCfg.EnableLimiter = strings.ToLower(os.Getenv("IP_INFO_ENABLE_LIMITER")) == "true"
 	}
 
 	if appCfg.EnableLimiter {
 		if err := limiterCfg.Validate(); err != nil {
 			return nil, nil, nil, nil, fmt.Errorf("invalid rate limiter config: %w", err)
 		}
+	}
+
+	if !appCfg.EnableCache {
+		appCfg.EnableCache = strings.ToLower(os.Getenv("IP_INFO_ENABLE_CACHE")) == "true"
 	}
 
 	if appCfg.EnableCache {

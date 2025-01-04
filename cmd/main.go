@@ -62,8 +62,8 @@ func main() {
 	}
 
 	var (
-		cacheProvider ip_cache.Cache
-		ipInfoCache   ip_locator.IpInfoCache
+		cacheProvider ip_cache.CacheProvider
+		ipInfoCache   ip_locator.IpCache
 	)
 	if appCfg.EnableCache {
 		switch appCfg.CacheProvider {

@@ -28,9 +28,9 @@ func New(ctx context.Context, cfg *config.Redis) (*Client, error) {
 }
 
 func (c *Client) Get(ctx context.Context, key string) ([]byte, error) {
-	return c.Get(ctx, key)
+	return c.Client.Get(ctx, key).Bytes()
 }
 
 func (c *Client) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	return c.Set(ctx, key, value, expiration)
+	return c.Client.Set(ctx, key, value, expiration).Err()
 }

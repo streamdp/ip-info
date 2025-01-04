@@ -13,36 +13,36 @@ import (
 
 const cacheReadTimeout = time.Second
 
-type Cache interface {
+type CacheProvider interface {
 	Get(ctx context.Context, key string) ([]byte, error)
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
 }
 
-type cache struct {
+type ipCache struct {
 	ctx context.Context
-	c   Cache
+	cp  CacheProvider
 
 	cfg *config.Cache
 }
 
-func New(ctx context.Context, c Cache, cfg *config.Cache) (ip_locator.IpInfoCache, error) {
-	return &cache{
+func New(ctx context.Context, cp CacheProvider, cfg *config.Cache) (ip_locator.IpCache, error) {
+	return &ipCache{
 		ctx: ctx,
-		c:   c,
+		cp:  cp,
 
 		cfg: cfg,
 	}, nil
 }
 
-func (c *cache) Set(ipInfo *domain.IpInfo) (err error) {
-	ctx, cancel := context.WithTimeout(c.ctx, cacheReadTimeout)
+func (i *ipCache) Set(ipInfo *domain.IpInfo) (err error) {
+	ctx, cancel := context.WithTimeout(i.ctx, cacheReadTimeout)
 	defer cancel()
 
-	if err = c.c.Set(
+	if err = i.cp.Set(
 		ctx,
 		ipInfo.Ip.String(),
 		ipInfo.Bytes(),
-		time.Duration(c.cfg.TTL)*time.Second,
+		time.Duration(i.cfg.TTL)*time.Second,
 	); err != nil {
 		return fmt.Errorf("cache: %w", err)
 	}
@@ -50,11 +50,11 @@ func (c *cache) Set(ipInfo *domain.IpInfo) (err error) {
 	return nil
 }
 
-func (c *cache) Get(ip string) (ipInfo *domain.IpInfo, err error) {
-	ctx, cancel := context.WithTimeout(c.ctx, cacheReadTimeout)
+func (i *ipCache) Get(ip string) (ipInfo *domain.IpInfo, err error) {
+	ctx, cancel := context.WithTimeout(i.ctx, cacheReadTimeout)
 	defer cancel()
 
-	res, err := c.c.Get(ctx, ip)
+	res, err := i.cp.Get(ctx, ip)
 	if err != nil {
 		return nil, fmt.Errorf("cache: %w", err)
 	}

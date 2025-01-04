@@ -156,6 +156,9 @@ Caching in memory is enabled by default, to disable you need to run _ip-info_ mi
 choose cache provider between **redis** and **memory**, using **-cache-provider** flag or **IP_INFO_CACHE_PROVIDER** 
 environment variable. 
 ```shell
+version: "3.4"
+services:
+   ip-info:      
       environment:
          - IP_INFO_ENABLE_CACHE=true
          - IP_INFO_CACHE_TTL=1800 # default 3600 seconds
@@ -169,32 +172,34 @@ $ ./bin/app -h
 ip-info is a microservice for IP location determination
 
 Usage of ./bin/app:
- -cache-ttl int
-    	cache ttl in seconds (default 3600)
+  -cache-provider string
+        where to store cache entries - in redis or in memory (default "memory")
+  -cache-ttl int
+        cache ttl in seconds (default 3600)
   -enable-cache
-    	enable cache
+        enable cache (default true)
   -enable-limiter
-    	enable rate limiter
+        enable rate limiter
   -grpc-port int
-    	grpc server port (default 50051)
+        grpc server port (default 50051)
   -grpc-read-timeout int
-    	gRPC server read timeout (default 5000)
-  -h	display help
+        gRPC server read timeout (default 5000)
+  -h    display help
   -http-port int
-    	http server port (default 8080)
+        http server port (default 8080)
   -http-read-timeout int
-    	http server read timeout (default 5000)
+        http server read timeout (default 5000)
   -rate-limit int
-    	rate limit, rps per client (default 10)
+        rate limit, rps per client (default 10)
   -read-header-timeout int
-    	http server read header timeout (default 5000)
+        http server read header timeout (default 5000)
   -redis-db int
-    	redis database
+        redis database
   -redis-host string
-    	redis host (default "127.0.0.1")
+        redis host (default "127.0.0.1")
   -redis-port int
-    	redis port (default 6379)
-  -v	display version
+        redis port (default 6379)
+  -v    display version
   -write-timeout int
-    	http server write timeout (default 5000)
+        http server write timeout (default 5000)
 ```
