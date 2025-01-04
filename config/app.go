@@ -21,7 +21,7 @@ type App struct {
 	HttpWriteTimeout      int
 	Version               string
 	EnableLimiter         bool
-	EnableCache           bool
+	DisableCache          bool
 	CacheProvider         string
 }
 

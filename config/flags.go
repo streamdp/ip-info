@@ -74,8 +74,8 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	if flag.Lookup("enable-limiter") == nil {
 		flag.BoolVar(&appCfg.EnableLimiter, "enable-limiter", false, "enable rate limiter")
 	}
-	if flag.Lookup("enable-cache") == nil {
-		flag.BoolVar(&appCfg.EnableCache, "enable-cache", true, "enable cache")
+	if flag.Lookup("disable-cache") == nil {
+		flag.BoolVar(&appCfg.DisableCache, "disable-cache", false, "disable cache")
 	}
 	if flag.Lookup("cache-provider") == nil {
 		flag.StringVar(&appCfg.CacheProvider, "cache-provider", defaultCacheProvider, "where to store "+
@@ -153,11 +153,11 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 		}
 	}
 
-	if !appCfg.EnableCache {
-		appCfg.EnableCache = strings.ToLower(os.Getenv("IP_INFO_ENABLE_CACHE")) == "true"
+	if !appCfg.DisableCache {
+		appCfg.DisableCache = strings.ToLower(os.Getenv("IP_INFO_DISABLE_CACHE")) == "true"
 	}
 
-	if appCfg.EnableCache {
+	if !appCfg.DisableCache {
 		if err := cacheCfg.Validate(); err != nil {
 			return nil, nil, nil, nil, fmt.Errorf("invalid cache config: %w", err)
 		}

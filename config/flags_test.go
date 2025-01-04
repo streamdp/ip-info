@@ -24,7 +24,6 @@ func TestLoadConfig(t *testing.T) {
 				"IP_INFO_CACHE_PROVIDER": "redis",
 				"IP_INFO_CACHE_TTL":      "3600",
 				"IP_INFO_ENABLE_LIMITER": "true",
-				"IP_INFO_ENABLE_CACHE":   "true",
 			},
 			wantApp: &App{
 				HttpPort:              httpServerDefaultPort,
@@ -37,7 +36,7 @@ func TestLoadConfig(t *testing.T) {
 				HttpWriteTimeout:      serverDefaultTimeout,
 				Version:               "",
 				EnableLimiter:         true,
-				EnableCache:           true,
+				DisableCache:          false,
 				CacheProvider:         "redis",
 			},
 			wantRedis: &Redis{
@@ -92,7 +91,6 @@ func TestLoadConfig(t *testing.T) {
 			envs: map[string]string{
 				"IP_INFO_DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
 				"IP_INFO_CACHE_TTL":    "-1",
-				"IP_INFO_ENABLE_CACHE": "true",
 			},
 			wantErr: true,
 		},

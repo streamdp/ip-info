@@ -43,7 +43,7 @@ func main() {
 	go updater.New(ctx, d, l).PullUpdates()
 
 	var redisCache *redis_client.Client
-	if appCfg.EnableLimiter || (appCfg.EnableCache && appCfg.CacheProvider == "redis") {
+	if appCfg.EnableLimiter || (!appCfg.DisableCache && appCfg.CacheProvider == "redis") {
 		if redisCache, err = redis_client.New(ctx, redisCfg); err != nil {
 			l.Fatal(err)
 		}
@@ -65,7 +65,7 @@ func main() {
 		cacheProvider ip_cache.CacheProvider
 		ipInfoCache   ip_locator.IpCache
 	)
-	if appCfg.EnableCache {
+	if !appCfg.DisableCache {
 		switch appCfg.CacheProvider {
 		case "redis":
 			cacheProvider = redisCache
