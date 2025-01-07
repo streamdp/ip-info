@@ -1,7 +1,6 @@
 ## IP-INFO
 [![Website ip-info.oncook.top](https://img.shields.io/website-up-down-green-red/https/ip-info.oncook.top.svg)](https://ip-info.oncook.top)
 [![GitHub release](https://img.shields.io/github/release/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/releases/)
-[![GitHub license](https://img.shields.io/github/license/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/blob/master/LICENSE)
 [![test](https://github.com/streamdp/ip-info/actions/workflows/test.yml/badge.svg)](https://github.com/streamdp/ip-info/actions/workflows/test.yml)
 ### Microservice for IP-based geolocation
 This microservice is a small, independent software application designed to determine the geographic location of a device 
