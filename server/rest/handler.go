@@ -11,6 +11,15 @@ import (
 	"github.com/streamdp/ip-info/pkg/ratelimiter"
 )
 
+const contentJson = "application/json"
+
+func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) (err error) {
+	w.Header().Set("Content-Type", contentJson)
+	w.WriteHeader(code)
+	_, err = w.Write(response.Bytes())
+	return err
+}
+
 func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ipString := r.URL.Query().Get("ip")
@@ -23,8 +32,7 @@ func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Reques
 			s.l.Println(err)
 		}
 
-		w.WriteHeader(getHttpStatus(err))
-		if _, err = w.Write(domain.NewResponse(err, ipInfo).Bytes()); err != nil {
+		if err = writeJsonResponse(w, getHttpStatus(err), domain.NewResponse(err, ipInfo)); err != nil {
 			s.l.Println(err)
 		}
 	}
