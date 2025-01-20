@@ -74,7 +74,7 @@ func main() {
 		default:
 			cacheProvider = microcache.New(ctx, nil)
 		}
-		if ipInfoCache, err = ip_cache.New(ctx, cacheProvider, cacheCfg); err != nil {
+		if ipInfoCache, err = ip_cache.New(cacheProvider, cacheCfg); err != nil {
 			l.Fatal(err)
 		}
 	}

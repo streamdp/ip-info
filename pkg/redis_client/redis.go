@@ -10,6 +10,8 @@ import (
 )
 
 type Client struct {
+	ctx context.Context
+
 	*redis.Client
 }
 
@@ -24,13 +26,16 @@ func New(ctx context.Context, cfg *config.Redis) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{c}, nil
+	return &Client{
+		ctx:    ctx,
+		Client: c,
+	}, nil
 }
 
-func (c *Client) Get(ctx context.Context, key string) (any, error) {
-	return c.Client.Get(ctx, key).Bytes()
+func (c *Client) Get(key string) (any, error) {
+	return c.Client.Get(c.ctx, key).Bytes()
 }
 
-func (c *Client) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
-	return c.Client.Set(ctx, key, value, expiration).Err()
+func (c *Client) Set(key string, value any, expiration time.Duration) error {
+	return c.Client.Set(c.ctx, key, value, expiration).Err()
 }
