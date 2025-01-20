@@ -27,10 +27,10 @@ func New(ctx context.Context, cfg *config.Redis) (*Client, error) {
 	return &Client{c}, nil
 }
 
-func (c *Client) Get(ctx context.Context, key string) ([]byte, error) {
+func (c *Client) Get(ctx context.Context, key string) (any, error) {
 	return c.Client.Get(ctx, key).Bytes()
 }
 
-func (c *Client) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
+func (c *Client) Set(ctx context.Context, key string, value any, expiration time.Duration) error {
 	return c.Client.Set(ctx, key, value, expiration).Err()
 }

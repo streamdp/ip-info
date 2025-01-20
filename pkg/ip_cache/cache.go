@@ -14,8 +14,8 @@ import (
 const cacheReadTimeout = time.Second
 
 type CacheProvider interface {
-	Get(ctx context.Context, key string) ([]byte, error)
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	Get(ctx context.Context, key string) (any, error)
+	Set(ctx context.Context, key string, value any, expiration time.Duration) error
 }
 
 type ipCache struct {
@@ -60,7 +60,7 @@ func (i *ipCache) Get(ip string) (ipInfo *domain.IpInfo, err error) {
 	}
 
 	ipInfo = &domain.IpInfo{}
-	if err = json.Unmarshal(res, ipInfo); err != nil {
+	if err = json.Unmarshal(res.([]byte), ipInfo); err != nil {
 		return nil, err
 	}
 

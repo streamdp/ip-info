@@ -10,12 +10,12 @@ import (
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/pkg/ip_cache"
 	"github.com/streamdp/ip-info/pkg/ip_locator"
-	"github.com/streamdp/ip-info/pkg/memcache"
 	"github.com/streamdp/ip-info/pkg/ratelimiter"
 	"github.com/streamdp/ip-info/pkg/redis_client"
 	"github.com/streamdp/ip-info/server/grpc"
 	"github.com/streamdp/ip-info/server/rest"
 	"github.com/streamdp/ip-info/updater"
+	"github.com/streamdp/microcache"
 )
 
 func main() {
@@ -72,7 +72,7 @@ func main() {
 		case "memory":
 			fallthrough
 		default:
-			cacheProvider = memcache.New(ctx)
+			cacheProvider = microcache.New(ctx, nil)
 		}
 		if ipInfoCache, err = ip_cache.New(ctx, cacheProvider, cacheCfg); err != nil {
 			l.Fatal(err)
