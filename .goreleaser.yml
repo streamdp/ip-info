@@ -22,6 +22,8 @@ archives:
     files:
       - README.md
       - LICENSE
+      - pkg/ratelimiter/REDIS-RATE-LICENSE
+      - pkg/redis_client/REDIS-LICENSE
       - database/model/*
 checksum:
   name_template: 'checksums.txt'
