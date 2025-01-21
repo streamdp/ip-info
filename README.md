@@ -118,8 +118,8 @@ when **memory** cache used:
   Requests/sec: 3285.49
 ```
 ### Rate limiting
-You could choose limiter between **[redis_rate](https://github.com/go-redis/redis_rate)** (_redis_ server should be present)
-and **[golimiter](https://github.com/streamdp/golimiter)**, using **-limiter-provider** flag or **IP_INFO_LIMITER_PROVIDER**
+You could choose **limiter** between [redis_rate](https://github.com/go-redis/redis_rate) (_redis_ should be present)
+and [golimiter](https://github.com/streamdp/golimiter), using **-limiter-provider** flag or **IP_INFO_LIMITER_PROVIDER**
 environment variable. To enable rate limiting run _ip-info_ microservice with the **-enable-limiter** flag or 
 **IP_INFO_ENABLE_LIMITER** environment variable. The default rate limit value is 10 requests per second per client, 
 you can adjust it with the **-rate-limit** flag or **IP_INFO_RATE_LIMIT** environment variable. 
