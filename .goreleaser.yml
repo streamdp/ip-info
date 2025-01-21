@@ -22,7 +22,7 @@ archives:
     files:
       - README.md
       - LICENSE
-      - pkg/ratelimiter/LICENSE
+      - pkg/redis_rate/LICENSE
       - pkg/redis_client/LICENSE
       - database/model/*
 checksum:
