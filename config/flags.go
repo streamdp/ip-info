@@ -20,6 +20,7 @@ const (
 
 	defaultLimiterProvider = "golimiter"
 	defaultRateLimit       = 10
+	defaultRateLimitTTL    = 60
 
 	defaultCacheProvider = "microcache"
 	defaultCacheTTL      = 3600
@@ -90,6 +91,9 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	if flag.Lookup("rate-limit") == nil {
 		flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
 	}
+	if flag.Lookup("rate-limit-ttl") == nil {
+		flag.IntVar(&limiterCfg.TTL, "rate-limit-ttl", defaultRateLimitTTL, "rate limit entries ttl in seconds")
+	}
 
 	if flag.Lookup("cache-provider") == nil {
 		flag.StringVar(&cacheCfg.Provider, "cache-provider", defaultCacheProvider, "where to store "+
@@ -135,6 +139,10 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 		if rl := os.Getenv("IP_INFO_RATE_LIMIT"); rl != "" {
 			n, _ := strconv.Atoi(strings.TrimSpace(rl))
 			limiterCfg.RateLimit = n
+		}
+		if ttl := os.Getenv("IP_INFO_RATE_LIMIT_TTL"); ttl != "" {
+			n, _ := strconv.Atoi(strings.TrimSpace(ttl))
+			limiterCfg.TTL = n
 		}
 
 		if err := limiterCfg.Validate(); err != nil {

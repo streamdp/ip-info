@@ -15,6 +15,7 @@ func TestLimiter_Validate(t *testing.T) {
 			cfg: &Limiter{
 				Provider:  "golimiter",
 				RateLimit: 100,
+				TTL:       60,
 			},
 			wantErr: false,
 		},
@@ -23,6 +24,7 @@ func TestLimiter_Validate(t *testing.T) {
 			cfg: &Limiter{
 				Provider:  "redis_rate",
 				RateLimit: -1,
+				TTL:       60,
 			},
 			wantErr: true,
 		},
@@ -31,6 +33,16 @@ func TestLimiter_Validate(t *testing.T) {
 			cfg: &Limiter{
 				Provider:  "redis_rate111",
 				RateLimit: 2,
+				TTL:       60,
+			},
+			wantErr: true,
+		},
+		{
+			name: "wrong TTL",
+			cfg: &Limiter{
+				Provider:  "redis_rate",
+				RateLimit: 2,
+				TTL:       0,
 			},
 			wantErr: true,
 		},

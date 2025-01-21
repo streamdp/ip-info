@@ -26,8 +26,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/redis/go-redis/v9 v9.7.0 h1:HhLSs+B6O021gwzl+locl0zEDnyNkxMtf/Z3NNBMa9E=
 github.com/redis/go-redis/v9 v9.7.0/go.mod h1:f6zhXITC7JUJIlPEiBOTXxJgPLdZcA93GewI7inzyWw=
-github.com/streamdp/golimiter v0.0.2 h1:RGcFzJ+Df5PSA0n5Rcgmu3mL2m9VtC8fhpjWvDUjmUo=
-github.com/streamdp/golimiter v0.0.2/go.mod h1:O1x9QSd3DnXo/fmrhjkDJHjaNAOR5VUfi8cIxp2MAsY=
+github.com/streamdp/golimiter v1.0.0 h1:iqjYZltfoG37y9hp9eK4GxwpKq1kgF6r3sEqlWAv7cE=
+github.com/streamdp/golimiter v1.0.0/go.mod h1:O1x9QSd3DnXo/fmrhjkDJHjaNAOR5VUfi8cIxp2MAsY=
 github.com/streamdp/microcache v1.0.0 h1:CWAbdeQ6ObtazBlBGluuUyg7C8WvRRkRTgWDKOdL6wg=
 github.com/streamdp/microcache v1.0.0/go.mod h1:PKCYNMwSUhpR72K6lRmjCATb1AX9CDENCEUcPyGq6To=
 github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=

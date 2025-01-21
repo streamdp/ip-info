@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	errCacheTTL   = errors.New("TTL limit should be positive number")
+	errCacheTTL   = errors.New("TTL should be positive number")
 	errWrongCache = errors.New("wrong cache provider field")
 )
 

@@ -21,6 +21,7 @@ func TestLoadConfig(t *testing.T) {
 				"GRPC_USE_REFLECTION":    "false",
 				"IP_INFO_DATABASE_URL":   "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
 				"IP_INFO_RATE_LIMIT":     "10",
+				"IP_INFO_RATE_LIMIT_TTL": "65",
 				"IP_INFO_CACHE_PROVIDER": "redis",
 				"IP_INFO_CACHE_TTL":      "3600",
 				"IP_INFO_ENABLE_LIMITER": "true",
@@ -47,6 +48,7 @@ func TestLoadConfig(t *testing.T) {
 			wantLimiter: &Limiter{
 				Provider:  "golimiter",
 				RateLimit: 10,
+				TTL:       65,
 			},
 			wantCache: &Cache{
 				Provider: "redis",
