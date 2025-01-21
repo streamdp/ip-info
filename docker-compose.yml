@@ -16,7 +16,7 @@ services:
 
    ip-info:
       build: .
-      image: streamdp/ip-info:v0.3.5
+      image: streamdp/ip-info:v0.4.2
       environment:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable
          - IP_INFO_ENABLE_LIMITER=true
