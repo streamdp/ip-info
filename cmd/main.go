@@ -10,8 +10,10 @@ import (
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/pkg/ip_cache"
 	"github.com/streamdp/ip-info/pkg/ip_locator"
-	"github.com/streamdp/ip-info/pkg/ratelimiter"
+	"github.com/streamdp/ip-info/pkg/rate_limiter"
 	"github.com/streamdp/ip-info/pkg/redis_client"
+	"github.com/streamdp/ip-info/pkg/redis_rate"
+	"github.com/streamdp/ip-info/server"
 	"github.com/streamdp/ip-info/server/grpc"
 	"github.com/streamdp/ip-info/server/rest"
 	"github.com/streamdp/ip-info/updater"
@@ -43,7 +45,8 @@ func main() {
 	go updater.New(ctx, d, l).PullUpdates()
 
 	var redisCache *redis_client.Client
-	if appCfg.EnableLimiter || (!appCfg.DisableCache && appCfg.CacheProvider == "redis") {
+	if appCfg.EnableLimiter && limiterCfg.Provider == "redis_rate" ||
+		!appCfg.DisableCache && cacheCfg.Provider == "redis" {
 		if redisCache, err = redis_client.New(ctx, redisCfg); err != nil {
 			l.Fatal(err)
 		}
@@ -54,10 +57,17 @@ func main() {
 		}(redisCache)
 	}
 
-	var limiter ratelimiter.Limiter
+	var limiter server.Limiter
 	if appCfg.EnableLimiter {
-		if limiter, err = ratelimiter.New(ctx, redisCache.Client, limiterCfg); err != nil {
-			l.Fatal(err)
+		switch limiterCfg.Provider {
+		case "redis_rate":
+			if limiter, err = redis_rate.New(ctx, redisCache.Client, limiterCfg); err != nil {
+				l.Fatal(err)
+			}
+		case "golimiter":
+			fallthrough
+		default:
+			limiter = rate_limiter.New(ctx, limiterCfg)
 		}
 	}
 
@@ -66,10 +76,10 @@ func main() {
 		ipInfoCache   ip_locator.IpCache
 	)
 	if !appCfg.DisableCache {
-		switch appCfg.CacheProvider {
+		switch cacheCfg.Provider {
 		case "redis":
 			cacheProvider = redisCache
-		case "memory":
+		case "microcache":
 			fallthrough
 		default:
 			cacheProvider = microcache.New(ctx, nil)

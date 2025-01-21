@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/pkg/ratelimiter"
+	"github.com/streamdp/ip-info/server"
 )
 
-func rateLimiterMW(limiter ratelimiter.Limiter, l *log.Logger, next http.Handler) http.Handler {
+func rateLimiterMW(limiter server.Limiter, l *log.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := limiter.Limit(httpClientIp(r)); err != nil {
 			if err = writeJsonResponse(w, getHttpStatus(err), domain.NewResponse(err, nil)); err != nil {

@@ -118,9 +118,11 @@ when **memory** cache used:
   Requests/sec: 3285.49
 ```
 ### Rate limiting
-To enable rate limiting, you need to start the _redis_ server and run _ip-info_ microservice with the 
-**-enable-limiter** flag or **IP_INFO_ENABLE_LIMITER** environment variable. The default rate limit value is 10 requests
-per second per client, you can adjust it with the **-rate-limit** flag or **IP_INFO_RATE_LIMIT** environment variable. 
+You could choose limiter between **[redis_rate](https://github.com/go-redis/redis_rate)** (_redis_ server should be present)
+and **[golimiter](https://github.com/streamdp/golimiter)**, using **-limiter-provider** flag or **IP_INFO_LIMITER_PROVIDER**
+environment variable. To enable rate limiting run _ip-info_ microservice with the **-enable-limiter** flag or 
+**IP_INFO_ENABLE_LIMITER** environment variable. The default rate limit value is 10 requests per second per client, 
+you can adjust it with the **-rate-limit** flag or **IP_INFO_RATE_LIMIT** environment variable. 
 ```shell
 version: "3.4"
 services:
@@ -131,6 +133,7 @@ services:
          - IP_INFO_DATABASE_URL=postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable
          - IP_INFO_ENABLE_LIMITER=true
          - IP_INFO_RATE_LIMIT=15 # default 10 requests per second per client
+         - IP_INFO_LIMITER_PROVIDER=redis_rate # default "golimiter"
          - REDIS_URL=redis://:qwerty@redis:6379/0
       ports:
          - "8080:8080"
@@ -149,18 +152,18 @@ services:
 $ docker-compose up -d
 ```
 ### Caching
-Caching in memory is enabled by default, to disable you need to run _ip-info_ microservice with the
-**-disable-cache** flag or **IP_INFO_DISABLE_CACHE=true** environment variable. The default **TTL** value is 
-**3600** seconds, you can adjust it with the **-cache-ttl** flag or **IP_INFO_CACHE_TTL** environment variable. You could 
-choose cache provider between **redis** and **memory**, using **-cache-provider** flag or **IP_INFO_CACHE_PROVIDER** 
-environment variable. 
+Caching in-memory with [microcache](https://github.com/streamdp/microcache) library is enabled by default, to disable you need 
+to run _ip-info_ microservice with the **-disable-cache** flag or **IP_INFO_DISABLE_CACHE=true** environment variable. 
+The default **TTL** value is **3600** seconds, you can adjust it with the **-cache-ttl** flag or **IP_INFO_CACHE_TTL** 
+environment variable. You could choose cache provider between **redis** and **microcache**, using **-cache-provider** 
+flag or **IP_INFO_CACHE_PROVIDER** environment variable. 
 ```shell
 version: "3.4"
 services:
    ip-info:      
       environment:
          - IP_INFO_CACHE_TTL=1800 # default 3600 seconds
-         - IP_INFO_CACHE_PROVIDER=redis # default "memory"
+         - IP_INFO_CACHE_PROVIDER=redis # default "microcache"
          - REDIS_URL=redis://:qwerty@redis:6379/0
 ```
 ### Help 
@@ -171,7 +174,7 @@ ip-info is a microservice for IP location determination
 
 Usage of ./bin/app:
   -cache-provider string
-        where to store cache entries - in redis or in memory (default "memory")
+        where to store cache entries: redis, microcache (default "microcache")
   -cache-ttl int
         cache ttl in seconds (default 3600)
   -disable-cache
@@ -187,6 +190,8 @@ Usage of ./bin/app:
         http server port (default 8080)
   -http-read-timeout int
         http server read timeout (default 5000)
+  -limiter-provider string
+        what use to limit queries: redis_rate, golimiter (default "golimiter")
   -rate-limit int
         rate limit, rps per client (default 10)
   -read-header-timeout int

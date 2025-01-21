@@ -13,14 +13,24 @@ func TestCache_Validate(t *testing.T) {
 		{
 			name: "cache config is valid",
 			cfg: &Cache{
-				TTL: 100,
+				Provider: "microcache",
+				TTL:      100,
 			},
 			wantErr: false,
 		},
 		{
 			name: "wrong ttl",
 			cfg: &Cache{
-				TTL: -1,
+				Provider: "redis",
+				TTL:      -1,
+			},
+			wantErr: true,
+		},
+		{
+			name: "wrong provider",
+			cfg: &Cache{
+				Provider: "redis111",
+				TTL:      2,
 			},
 			wantErr: true,
 		},

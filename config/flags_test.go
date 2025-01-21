@@ -37,7 +37,6 @@ func TestLoadConfig(t *testing.T) {
 				Version:               "",
 				EnableLimiter:         true,
 				DisableCache:          false,
-				CacheProvider:         "redis",
 			},
 			wantRedis: &Redis{
 				Host:     redisDefaultHost,
@@ -46,10 +45,12 @@ func TestLoadConfig(t *testing.T) {
 				Db:       redisDefaultDb,
 			},
 			wantLimiter: &Limiter{
+				Provider:  "golimiter",
 				RateLimit: 10,
 			},
 			wantCache: &Cache{
-				TTL: 3600,
+				Provider: "redis",
+				TTL:      3600,
 			},
 			wantErr: false,
 		},

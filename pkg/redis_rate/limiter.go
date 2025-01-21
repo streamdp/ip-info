@@ -1,25 +1,19 @@
-package ratelimiter
+package redis_rate
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis_rate/v10"
 	"github.com/redis/go-redis/v9"
 	"github.com/streamdp/ip-info/config"
+	"github.com/streamdp/ip-info/server"
 )
 
 const limiterReadTimeout = time.Second
 
-var ErrRateLimitExceeded = errors.New("rate limit exceeded")
-
-type Limiter interface {
-	Limit(ip string) error
-}
-
-type rateLimiter struct {
+type limiter struct {
 	ctx    context.Context
 	client *redis.Client
 
@@ -28,8 +22,8 @@ type rateLimiter struct {
 	limiter *redis_rate.Limiter
 }
 
-func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (Limiter, error) {
-	return &rateLimiter{
+func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (server.Limiter, error) {
+	return &limiter{
 		client: client,
 		ctx:    ctx,
 
@@ -39,17 +33,17 @@ func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (Limite
 	}, nil
 }
 
-func (rl *rateLimiter) Limit(ip string) error {
-	ctx, cancel := context.WithTimeout(rl.ctx, limiterReadTimeout)
+func (l *limiter) Limit(ip string) error {
+	ctx, cancel := context.WithTimeout(l.ctx, limiterReadTimeout)
 	defer cancel()
 
-	res, err := rl.limiter.Allow(ctx, ip, redis_rate.PerSecond(rl.cfg.RateLimit))
+	res, err := l.limiter.Allow(ctx, ip, redis_rate.PerSecond(l.cfg.RateLimit))
 	if err != nil {
 		return fmt.Errorf("rate_limiter: %w", err)
 	}
 
 	if res.Remaining == 0 {
-		return ErrRateLimitExceeded
+		return server.ErrRateLimitExceeded
 	}
 
 	return nil

@@ -10,7 +10,7 @@ import (
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/pkg/ip_locator"
-	"github.com/streamdp/ip-info/pkg/ratelimiter"
+	"github.com/streamdp/ip-info/server"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -86,10 +86,10 @@ func getGrpcCode(err error) codes.Code {
 	if err == nil {
 		return codes.OK
 	}
-	if errors.Is(err, ratelimiter.ErrRateLimitExceeded) {
+	if errors.Is(err, server.ErrRateLimitExceeded) {
 		return codes.ResourceExhausted
 	}
-	if errors.Is(err, ip_locator.ErrWrongIpAddress) {
+	if errors.Is(err, server.ErrWrongIpAddress) {
 		return codes.InvalidArgument
 	}
 	if errors.Is(err, database.ErrNoIpAddress) {

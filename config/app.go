@@ -22,7 +22,6 @@ type App struct {
 	Version               string
 	EnableLimiter         bool
 	DisableCache          bool
-	CacheProvider         string
 }
 
 func (c *App) Validate() error {

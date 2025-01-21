@@ -7,8 +7,7 @@ RUN apk update && apk upgrade
 
 WORKDIR /build
 ADD . /build
-COPY go.* ./
-RUN go get ./...
+RUN go mod download
 RUN go build -mod=readonly -o app -ldflags="-s -X github.com/streamdp/ip-info/config.Version=$VERSION" ./cmd
 
 # Adding statically compiled wget binaries to makes docker healthcheck possible when using a distroless base image.

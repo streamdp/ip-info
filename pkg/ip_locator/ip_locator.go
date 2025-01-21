@@ -1,12 +1,12 @@
 package ip_locator
 
 import (
-	"errors"
 	"fmt"
 	"net"
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
+	"github.com/streamdp/ip-info/server"
 )
 
 const (
@@ -14,8 +14,6 @@ const (
 	XForwardedFor  = "x-forwarded-for"
 	XRealIp        = "x-real-ip"
 )
-
-var ErrWrongIpAddress = errors.New("could not parse the IP address")
 
 type IpCache interface {
 	Set(*domain.IpInfo) error
@@ -37,7 +35,7 @@ func New(d database.Database, ic IpCache) *IpLocator {
 func (l *IpLocator) GetIpInfo(ipString string) (ipInfo *domain.IpInfo, err error) {
 	ip := net.ParseIP(ipString)
 	if ip == nil {
-		return nil, fmt.Errorf("%w: %s", ErrWrongIpAddress, ipString)
+		return nil, fmt.Errorf("%w: %s", server.ErrWrongIpAddress, ipString)
 	}
 
 	if l.ic == nil {

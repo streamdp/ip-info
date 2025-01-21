@@ -8,13 +8,11 @@ import (
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/pkg/ip_locator"
-	"github.com/streamdp/ip-info/pkg/ratelimiter"
+	"github.com/streamdp/ip-info/server"
 )
 
-const contentJson = "application/json"
-
 func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) (err error) {
-	w.Header().Set("Content-Type", contentJson)
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	_, err = w.Write(response.Bytes())
 	return err
@@ -51,10 +49,10 @@ func getHttpStatus(err error) int {
 	if err == nil {
 		return http.StatusOK
 	}
-	if errors.Is(err, ratelimiter.ErrRateLimitExceeded) {
+	if errors.Is(err, server.ErrRateLimitExceeded) {
 		return http.StatusTooManyRequests
 	}
-	if errors.Is(err, ip_locator.ErrWrongIpAddress) {
+	if errors.Is(err, server.ErrWrongIpAddress) {
 		return http.StatusBadRequest
 	}
 	if errors.Is(err, database.ErrNoIpAddress) {

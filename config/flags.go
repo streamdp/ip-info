@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -19,18 +18,15 @@ const (
 	redisDefaultPort = 6379
 	redisDefaultDb   = 0
 
-	defaultRateLimit = 10
+	defaultLimiterProvider = "golimiter"
+	defaultRateLimit       = 10
 
-	defaultCacheProvider = "memory"
+	defaultCacheProvider = "microcache"
 	defaultCacheTTL      = 3600
 )
 
 var (
-	Version        = "0.0.1"
-	cacheProviders = []string{
-		"memory",
-		"redis",
-	}
+	Version = "0.0.1"
 )
 
 func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
@@ -77,10 +73,6 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	if flag.Lookup("disable-cache") == nil {
 		flag.BoolVar(&appCfg.DisableCache, "disable-cache", false, "disable cache")
 	}
-	if flag.Lookup("cache-provider") == nil {
-		flag.StringVar(&appCfg.CacheProvider, "cache-provider", defaultCacheProvider, "where to store "+
-			"cache entries - in redis or in memory")
-	}
 	if flag.Lookup("redis-host") == nil {
 		flag.StringVar(&redisCfg.Host, "redis-host", redisDefaultHost, "redis host")
 	}
@@ -90,8 +82,18 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	if flag.Lookup("redis-db") == nil {
 		flag.IntVar(&redisCfg.Db, "redis-db", redisDefaultDb, "redis database")
 	}
+
+	if flag.Lookup("limiter-provider") == nil {
+		flag.StringVar(&limiterCfg.Provider, "limiter-provider", defaultLimiterProvider, "what use to limit "+
+			"queries: redis_rate, golimiter")
+	}
 	if flag.Lookup("rate-limit") == nil {
 		flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
+	}
+
+	if flag.Lookup("cache-provider") == nil {
+		flag.StringVar(&cacheCfg.Provider, "cache-provider", defaultCacheProvider, "where to store "+
+			"cache entries: redis, microcache")
 	}
 	if flag.Lookup("cache-ttl") == nil {
 		flag.IntVar(&cacheCfg.TTL, "cache-ttl", defaultCacheTTL, "cache ttl in seconds")
@@ -117,28 +119,6 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 		return nil, nil, nil, nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
 	}
 
-	if rl := os.Getenv("IP_INFO_RATE_LIMIT"); rl != "" {
-		n, err := strconv.Atoi(strings.TrimSpace(rl))
-		if err != nil {
-			return nil, nil, nil, nil, fmt.Errorf("invalid IP_INFO_RATE_LIMIT: %w", err)
-		}
-		limiterCfg.RateLimit = n
-	}
-
-	if cp := os.Getenv("IP_INFO_CACHE_PROVIDER"); cp != "" {
-		if slices.Contains(cacheProviders, cp) {
-			appCfg.CacheProvider = cp
-		}
-	}
-
-	if ttl := os.Getenv("IP_INFO_CACHE_TTL"); ttl != "" {
-		n, err := strconv.Atoi(strings.TrimSpace(ttl))
-		if err != nil {
-			return nil, nil, nil, nil, fmt.Errorf("invalid IP_INFO_CACHE_TTL: %w", err)
-		}
-		cacheCfg.TTL = n
-	}
-
 	if err := appCfg.Validate(); err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("invalid app config: %w", err)
 	}
@@ -148,6 +128,15 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	}
 
 	if appCfg.EnableLimiter {
+		if l := os.Getenv("IP_INFO_LIMITER_PROVIDER"); l != "" {
+			limiterCfg.Provider = l
+		}
+
+		if rl := os.Getenv("IP_INFO_RATE_LIMIT"); rl != "" {
+			n, _ := strconv.Atoi(strings.TrimSpace(rl))
+			limiterCfg.RateLimit = n
+		}
+
 		if err := limiterCfg.Validate(); err != nil {
 			return nil, nil, nil, nil, fmt.Errorf("invalid rate limiter config: %w", err)
 		}
@@ -158,6 +147,13 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	}
 
 	if !appCfg.DisableCache {
+		if cp := os.Getenv("IP_INFO_CACHE_PROVIDER"); cp != "" {
+			cacheCfg.Provider = cp
+		}
+		if ttl := os.Getenv("IP_INFO_CACHE_TTL"); ttl != "" {
+			n, _ := strconv.Atoi(strings.TrimSpace(ttl))
+			cacheCfg.TTL = n
+		}
 		if err := cacheCfg.Validate(); err != nil {
 			return nil, nil, nil, nil, fmt.Errorf("invalid cache config: %w", err)
 		}
