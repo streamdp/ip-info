@@ -194,6 +194,8 @@ Usage of ./bin/app:
         what use to limit queries: redis_rate, golimiter (default "golimiter")
   -rate-limit int
         rate limit, rps per client (default 10)
+  -rate-limit-ttl int
+        rate limit entries ttl in seconds (default 60)
   -read-header-timeout int
         http server read header timeout (default 5000)
   -redis-db int
