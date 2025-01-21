@@ -6,8 +6,8 @@ require (
 	github.com/go-redis/redis_rate/v10 v10.0.1
 	github.com/lib/pq v1.10.9
 	github.com/redis/go-redis/v9 v9.7.0
-	github.com/streamdp/golimiter v1.0.0
-	github.com/streamdp/microcache v1.0.0
+	github.com/streamdp/golimiter v1.0.1
+	github.com/streamdp/microcache v1.1.0
 	google.golang.org/grpc v1.69.4
 	google.golang.org/protobuf v1.36.3
 )

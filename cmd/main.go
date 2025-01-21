@@ -82,7 +82,7 @@ func main() {
 		case "microcache":
 			fallthrough
 		default:
-			cacheProvider = microcache.New(ctx, nil)
+			cacheProvider = microcache.New(ctx, 60000)
 		}
 		if ipInfoCache, err = ip_cache.New(cacheProvider, cacheCfg); err != nil {
 			l.Fatal(err)
