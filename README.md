@@ -208,3 +208,5 @@ Usage of ./bin/app:
   -write-timeout int
         http server write timeout (default 5000)
 ```
+### Support project
+[DigitalOcean](https://www.digitalocean.com/?refcode=253bf19488bd&utm_campaign=Referral_Invite&utm_medium=Referral_Program) referral link.
