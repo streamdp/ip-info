@@ -78,21 +78,21 @@ func Test_rateLimiterMW(t *testing.T) {
 func Test_contentTypeRestrictionMW(t *testing.T) {
 	tests := []struct {
 		name           string
-		r              *http.Request
+		request        *http.Request
 		contentType    string
 		wantStatusCode int
 		wantError      bool
 	}{
 		{
 			name:           "content type not implemented",
-			r:              httptest.NewRequest(http.MethodGet, "/client-ip", nil),
+			request:        httptest.NewRequest(http.MethodGet, "/client-ip", nil),
 			contentType:    "application/xml",
 			wantStatusCode: http.StatusNotImplemented,
 			wantError:      true,
 		},
 		{
 			name:           "content type implemented",
-			r:              httptest.NewRequest(http.MethodGet, "/ip-info", nil),
+			request:        httptest.NewRequest(http.MethodGet, "/ip-info", nil),
 			contentType:    jsonContentType,
 			wantStatusCode: http.StatusOK,
 			wantError:      false,
@@ -108,9 +108,9 @@ func Test_contentTypeRestrictionMW(t *testing.T) {
 			)
 
 			w := httptest.NewRecorder()
-			tt.r.Header.Set(contentTypeHeader, tt.contentType)
+			tt.request.Header.Set(contentTypeHeader, tt.contentType)
 
-			mw.ServeHTTP(w, tt.r)
+			mw.ServeHTTP(w, tt.request)
 
 			res := w.Result()
 			defer func(Body io.ReadCloser) {
