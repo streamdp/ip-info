@@ -11,8 +11,13 @@ import (
 	"github.com/streamdp/ip-info/server"
 )
 
+const (
+	jsonContentType   = "application/json"
+	contentTypeHeader = "Content-Type"
+)
+
 func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) (err error) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set(contentTypeHeader, jsonContentType)
 	w.WriteHeader(code)
 	_, err = w.Write(response.Bytes())
 	return err
@@ -48,6 +53,9 @@ func (s *Server) healthz() func(http.ResponseWriter, *http.Request) {
 func getHttpStatus(err error) int {
 	if err == nil {
 		return http.StatusOK
+	}
+	if errors.Is(err, errWrongContentType) {
+		return http.StatusNotImplemented
 	}
 	if errors.Is(err, server.ErrRateLimitExceeded) {
 		return http.StatusTooManyRequests

@@ -44,7 +44,7 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 }
 
 func (s *Server) Run() {
-	s.srv.Handler = s.initRouter()
+	s.srv.Handler = contentTypeRestrictionMW(s.l, s.initRouter())
 
 	if s.cfg.EnableLimiter {
 		s.srv.Handler = rateLimiterMW(s.limiter, s.l, s.srv.Handler)
