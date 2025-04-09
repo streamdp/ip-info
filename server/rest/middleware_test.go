@@ -77,25 +77,28 @@ func Test_rateLimiterMW(t *testing.T) {
 
 func Test_contentTypeRestrictionMW(t *testing.T) {
 	tests := []struct {
-		name           string
-		request        *http.Request
-		contentType    string
-		wantStatusCode int
-		wantError      bool
+		name               string
+		request            *http.Request
+		allowedContentType string
+		requestContentType string
+		wantStatusCode     int
+		wantError          bool
 	}{
 		{
-			name:           "content type not implemented",
-			request:        httptest.NewRequest(http.MethodGet, "/client-ip", nil),
-			contentType:    "application/xml",
-			wantStatusCode: http.StatusNotImplemented,
-			wantError:      true,
+			name:               "content type not implemented",
+			request:            httptest.NewRequest(http.MethodGet, "/client-ip", nil),
+			allowedContentType: jsonContentType,
+			requestContentType: "application/xml",
+			wantStatusCode:     http.StatusNotImplemented,
+			wantError:          true,
 		},
 		{
-			name:           "content type implemented",
-			request:        httptest.NewRequest(http.MethodGet, "/ip-info", nil),
-			contentType:    jsonContentType,
-			wantStatusCode: http.StatusOK,
-			wantError:      false,
+			name:               "content type implemented",
+			request:            httptest.NewRequest(http.MethodGet, "/ip-info", nil),
+			allowedContentType: jsonContentType,
+			requestContentType: jsonContentType,
+			wantStatusCode:     http.StatusOK,
+			wantError:          false,
 		},
 	}
 	for _, tt := range tests {
@@ -104,11 +107,12 @@ func Test_contentTypeRestrictionMW(t *testing.T) {
 
 			mw := contentTypeRestrictionMW(
 				log.New(io.Discard, "", log.LstdFlags),
-				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}),
+				func(w http.ResponseWriter, r *http.Request) {},
+				tt.allowedContentType,
 			)
 
 			w := httptest.NewRecorder()
-			tt.request.Header.Set(contentTypeHeader, tt.contentType)
+			tt.request.Header.Set(contentTypeHeader, tt.requestContentType)
 
 			mw.ServeHTTP(w, tt.request)
 
@@ -133,6 +137,50 @@ func Test_contentTypeRestrictionMW(t *testing.T) {
 				if resp.Err == "" {
 					t.Fatalf("response doesn't contain error: expected error, got: \"\"")
 				}
+			}
+		})
+	}
+}
+
+func Test_isAllowedContentType(t *testing.T) {
+	type args struct {
+		c            string
+		allowedTypes []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "allowed type",
+			args: args{
+				jsonContentType,
+				[]string{jsonContentType, textPlainContentType},
+			},
+			want: true,
+		},
+		{
+			name: "content type is not allowed",
+			args: args{
+				"application/xml",
+				[]string{jsonContentType},
+			},
+			want: false,
+		},
+		{
+			name: "empty content type",
+			args: args{
+				"",
+				[]string{jsonContentType},
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isAllowedContentType(tt.args.c, tt.args.allowedTypes); got != tt.want {
+				t.Errorf("isAllowedContentType() = %v, want %v", got, tt.want)
 			}
 		})
 	}

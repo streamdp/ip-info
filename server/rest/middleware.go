@@ -2,9 +2,9 @@ package rest
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/server"
@@ -25,17 +25,25 @@ func rateLimiterMW(limiter server.Limiter, l *log.Logger, next http.Handler) htt
 
 var errWrongContentType = errors.New("content type not implemented")
 
-func contentTypeRestrictionMW(l *log.Logger, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if c := r.Header.Get(contentTypeHeader); c != "" && c != jsonContentType {
-			err := fmt.Errorf("%w: %s", errWrongContentType, c)
-			if err = writeJsonResponse(w, getHttpStatus(err), domain.NewResponse(err, nil)); err != nil {
-				l.Println(err)
-			}
+func contentTypeRestrictionMW(l *log.Logger, f http.HandlerFunc, allowedTypes ...string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if isAllowedContentType(r.Header.Get(contentTypeHeader), allowedTypes) {
+			f.ServeHTTP(w, r)
 			return
 		}
 
-		next.ServeHTTP(w, r)
-	})
+		if err := writeJsonResponse(
+			w, getHttpStatus(errWrongContentType), domain.NewResponse(errWrongContentType, nil),
+		); err != nil {
+			l.Println(err)
+		}
+	}
+}
 
+func isAllowedContentType(c string, allowedTypes []string) bool {
+	if c == "" {
+		return true
+	}
+
+	return slices.Contains(allowedTypes, c)
 }

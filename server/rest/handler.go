@@ -11,11 +11,6 @@ import (
 	"github.com/streamdp/ip-info/server"
 )
 
-const (
-	jsonContentType   = "application/json"
-	contentTypeHeader = "Content-Type"
-)
-
 func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) (err error) {
 	w.Header().Set(contentTypeHeader, jsonContentType)
 	w.WriteHeader(code)
