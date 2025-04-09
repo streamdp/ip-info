@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -8,7 +9,7 @@ func TestCache_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
 		cfg     *Cache
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "cache config is valid",
@@ -16,7 +17,7 @@ func TestCache_Validate(t *testing.T) {
 				Provider: "microcache",
 				TTL:      100,
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "wrong ttl",
@@ -24,7 +25,7 @@ func TestCache_Validate(t *testing.T) {
 				Provider: "redis",
 				TTL:      -1,
 			},
-			wantErr: true,
+			wantErr: errCacheTTL,
 		},
 		{
 			name: "wrong provider",
@@ -32,12 +33,12 @@ func TestCache_Validate(t *testing.T) {
 				Provider: "redis111",
 				TTL:      2,
 			},
-			wantErr: true,
+			wantErr: errWrongCache,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.Validate(); (err != nil) != tt.wantErr {
+			if err := tt.cfg.Validate(); err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

@@ -28,6 +28,8 @@ const (
 
 var (
 	Version = "0.0.1"
+
+	errEmptyDatabaseUrlEnv = errors.New("IP_INFO_DATABASE_URL environment variable not set")
 )
 
 func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
@@ -40,68 +42,32 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 		cacheCfg    = &Cache{}
 	)
 
-	if flag.Lookup("h") == nil {
-		flag.BoolVar(&showHelp, "h", false, "display help")
-	}
-	if flag.Lookup("v") == nil {
-		flag.BoolVar(&showVersion, "v", false, "display version")
-	}
-	if flag.Lookup("http-port") == nil {
-		flag.IntVar(&appCfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
-	}
-	if flag.Lookup("grpc-port") == nil {
-		flag.IntVar(&appCfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
-	}
-	if flag.Lookup("grpc-read-timeout") == nil {
-		flag.IntVar(&appCfg.GrpcReadTimeout, "grpc-read-timeout", serverDefaultTimeout,
-			"gRPC server read timeout")
-	}
-	if flag.Lookup("http-read-timeout") == nil {
-		flag.IntVar(&appCfg.HttpReadTimeout, "http-read-timeout", serverDefaultTimeout,
-			"http server read timeout")
-	}
-	if flag.Lookup("read-header-timeout") == nil {
-		flag.IntVar(&appCfg.HttpReadHeaderTimeout, "read-header-timeout", serverDefaultTimeout,
-			"http server read header timeout")
-	}
-	if flag.Lookup("write-timeout") == nil {
-		flag.IntVar(&appCfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout,
-			"http server write timeout")
-	}
-	if flag.Lookup("enable-limiter") == nil {
-		flag.BoolVar(&appCfg.EnableLimiter, "enable-limiter", false, "enable rate limiter")
-	}
-	if flag.Lookup("disable-cache") == nil {
-		flag.BoolVar(&appCfg.DisableCache, "disable-cache", false, "disable cache")
-	}
-	if flag.Lookup("redis-host") == nil {
-		flag.StringVar(&redisCfg.Host, "redis-host", redisDefaultHost, "redis host")
-	}
-	if flag.Lookup("redis-port") == nil {
-		flag.IntVar(&redisCfg.Port, "redis-port", redisDefaultPort, "redis port")
-	}
-	if flag.Lookup("redis-db") == nil {
-		flag.IntVar(&redisCfg.Db, "redis-db", redisDefaultDb, "redis database")
-	}
+	flag.BoolVar(&showHelp, "h", false, "display help")
+	flag.BoolVar(&showVersion, "v", false, "display version")
+	flag.IntVar(&appCfg.HttpPort, "http-port", httpServerDefaultPort, "http server port")
+	flag.IntVar(&appCfg.GrpcPort, "grpc-port", gRPCServerDefaultPort, "grpc server port")
+	flag.IntVar(&appCfg.GrpcReadTimeout, "grpc-read-timeout", serverDefaultTimeout,
+		"gRPC server read timeout")
+	flag.IntVar(&appCfg.HttpReadTimeout, "http-read-timeout", serverDefaultTimeout,
+		"http server read timeout")
+	flag.IntVar(&appCfg.HttpReadHeaderTimeout, "read-header-timeout", serverDefaultTimeout,
+		"http server read header timeout")
+	flag.IntVar(&appCfg.HttpWriteTimeout, "write-timeout", serverDefaultTimeout,
+		"http server write timeout")
 
-	if flag.Lookup("limiter-provider") == nil {
-		flag.StringVar(&limiterCfg.Provider, "limiter-provider", defaultLimiterProvider, "what use to limit "+
-			"queries: redis_rate, golimiter")
-	}
-	if flag.Lookup("rate-limit") == nil {
-		flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
-	}
-	if flag.Lookup("rate-limit-ttl") == nil {
-		flag.IntVar(&limiterCfg.TTL, "rate-limit-ttl", defaultRateLimitTTL, "rate limit entries ttl in seconds")
-	}
+	flag.BoolVar(&appCfg.EnableLimiter, "enable-limiter", false, "enable rate limiter")
+	flag.BoolVar(&appCfg.DisableCache, "disable-cache", false, "disable cache")
+	flag.StringVar(&redisCfg.Host, "redis-host", redisDefaultHost, "redis host")
+	flag.IntVar(&redisCfg.Port, "redis-port", redisDefaultPort, "redis port")
+	flag.IntVar(&redisCfg.Db, "redis-db", redisDefaultDb, "redis database")
+	flag.StringVar(&limiterCfg.Provider, "limiter-provider", defaultLimiterProvider, "what use to limit "+
+		"queries: redis_rate, golimiter")
+	flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
+	flag.IntVar(&limiterCfg.TTL, "rate-limit-ttl", defaultRateLimitTTL, "rate limit entries ttl in seconds")
 
-	if flag.Lookup("cache-provider") == nil {
-		flag.StringVar(&cacheCfg.Provider, "cache-provider", defaultCacheProvider, "where to store "+
-			"cache entries: redis, microcache")
-	}
-	if flag.Lookup("cache-ttl") == nil {
-		flag.IntVar(&cacheCfg.TTL, "cache-ttl", defaultCacheTTL, "cache ttl in seconds")
-	}
+	flag.StringVar(&cacheCfg.Provider, "cache-provider", defaultCacheProvider, "where to store "+
+		"cache entries: redis, microcache")
+	flag.IntVar(&cacheCfg.TTL, "cache-ttl", defaultCacheTTL, "cache ttl in seconds")
 
 	flag.Parse()
 
@@ -120,7 +86,7 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	appCfg.GrpcUseReflection = strings.ToLower(os.Getenv("GRPC_USE_REFLECTION")) != "false"
 
 	if appCfg.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL"); appCfg.DatabaseUrl == "" {
-		return nil, nil, nil, nil, errors.New("IP_INFO_DATABASE_URL environment variable not set")
+		return nil, nil, nil, nil, errEmptyDatabaseUrlEnv
 	}
 
 	if err := appCfg.Validate(); err != nil {

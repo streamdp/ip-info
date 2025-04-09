@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -8,7 +9,7 @@ func TestLimiter_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
 		cfg     *Limiter
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "limiter config is valid",
@@ -17,7 +18,7 @@ func TestLimiter_Validate(t *testing.T) {
 				RateLimit: 100,
 				TTL:       60,
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "wrong rate limit",
@@ -26,7 +27,7 @@ func TestLimiter_Validate(t *testing.T) {
 				RateLimit: -1,
 				TTL:       60,
 			},
-			wantErr: true,
+			wantErr: errWrongRateLimit,
 		},
 		{
 			name: "wrong provider",
@@ -35,7 +36,7 @@ func TestLimiter_Validate(t *testing.T) {
 				RateLimit: 2,
 				TTL:       60,
 			},
-			wantErr: true,
+			wantErr: errWrongLimiter,
 		},
 		{
 			name: "wrong TTL",
@@ -44,12 +45,12 @@ func TestLimiter_Validate(t *testing.T) {
 				RateLimit: 2,
 				TTL:       0,
 			},
-			wantErr: true,
+			wantErr: errRateLimitTTL,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.Validate(); (err != nil) != tt.wantErr {
+			if err := tt.cfg.Validate(); err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

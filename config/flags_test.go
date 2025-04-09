@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"flag"
 	"reflect"
 	"testing"
 )
@@ -13,7 +15,7 @@ func TestLoadConfig(t *testing.T) {
 		wantRedis   *Redis
 		wantLimiter *Limiter
 		wantCache   *Cache
-		wantErr     bool
+		wantErr     error
 	}{
 		{
 			name: "regular loading config",
@@ -54,23 +56,16 @@ func TestLoadConfig(t *testing.T) {
 				Provider: "redis",
 				TTL:      3600,
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "wrong rate limit",
 			envs: map[string]string{
-				"IP_INFO_DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
-				"IP_INFO_RATE_LIMIT":   "wrong",
+				"IP_INFO_DATABASE_URL":   "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
+				"IP_INFO_ENABLE_LIMITER": "true",
+				"IP_INFO_RATE_LIMIT":     "wrong",
 			},
-			wantErr: true,
-		},
-		{
-			name: "wrong rate limit",
-			envs: map[string]string{
-				"IP_INFO_DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
-				"IP_INFO_RATE_LIMIT":   "wrong",
-			},
-			wantErr: true,
+			wantErr: errWrongRateLimit,
 		},
 		{
 			name: "negative rate limit",
@@ -79,7 +74,7 @@ func TestLoadConfig(t *testing.T) {
 				"IP_INFO_RATE_LIMIT":     "-1",
 				"IP_INFO_ENABLE_LIMITER": "true",
 			},
-			wantErr: true,
+			wantErr: errWrongRateLimit,
 		},
 		{
 			name: "wrong cache ttl",
@@ -87,7 +82,7 @@ func TestLoadConfig(t *testing.T) {
 				"IP_INFO_DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
 				"IP_INFO_CACHE_TTL":    "wrong",
 			},
-			wantErr: true,
+			wantErr: errCacheTTL,
 		},
 		{
 			name: "negative cache ttl",
@@ -95,23 +90,24 @@ func TestLoadConfig(t *testing.T) {
 				"IP_INFO_DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
 				"IP_INFO_CACHE_TTL":    "-1",
 			},
-			wantErr: true,
+			wantErr: errCacheTTL,
 		},
 		{
-			name: "empty db url",
+			name: "empty db url environment variable",
 			envs: map[string]string{
 				"IP_INFO_DATABASE_URL": "",
 			},
-			wantErr: true,
+			wantErr: errEmptyDatabaseUrlEnv,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			flag.CommandLine = flag.NewFlagSet("", flag.ContinueOnError)
 			for k, v := range tt.envs {
 				t.Setenv(k, v)
 			}
 			gotApp, gotRedis, gotLimiter, gotCache, err := LoadConfig()
-			if (err != nil) != tt.wantErr {
+			if err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("LoadConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

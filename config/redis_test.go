@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -11,7 +12,7 @@ func TestRedis_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
 		cfg     *Redis
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "redis config is valid",
@@ -21,7 +22,7 @@ func TestRedis_Validate(t *testing.T) {
 				Password: "qwerty",
 				Db:       1,
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "wrong host",
@@ -31,7 +32,7 @@ func TestRedis_Validate(t *testing.T) {
 				Password: "qwerty",
 				Db:       1,
 			},
-			wantErr: true,
+			wantErr: errRedisHost,
 		},
 		{
 			name: "wrong port",
@@ -41,7 +42,7 @@ func TestRedis_Validate(t *testing.T) {
 				Password: "qwerty",
 				Db:       1,
 			},
-			wantErr: true,
+			wantErr: errWrongNetworkPort,
 		},
 		{
 			name: "wrong db",
@@ -51,12 +52,12 @@ func TestRedis_Validate(t *testing.T) {
 				Password: "qwerty",
 				Db:       150,
 			},
-			wantErr: true,
+			wantErr: errRedisDb,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.Validate(); (err != nil) != tt.wantErr {
+			if err := tt.cfg.Validate(); err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -69,7 +70,7 @@ func TestRedis_Options(t *testing.T) {
 		l       *Redis
 		envs    map[string]string
 		want    *redis.Options
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "regular get options from config",
@@ -80,7 +81,7 @@ func TestRedis_Options(t *testing.T) {
 				Db:       1,
 			},
 			want:    &redis.Options{Addr: "127.0.0.1:6379", Password: "qwerty", DB: 1},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "get options from env REDIS_URL",
@@ -88,7 +89,7 @@ func TestRedis_Options(t *testing.T) {
 				"REDIS_URL": "redis://:qwerty@redis:6379/0",
 			},
 			want:    &redis.Options{Network: "tcp", Addr: "redis:6379", Password: "qwerty", DB: 0},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "get options from separated envs",
@@ -100,7 +101,7 @@ func TestRedis_Options(t *testing.T) {
 				"REDIS_DB":       "0",
 			},
 			want:    &redis.Options{Addr: "127.0.0.1:6379", Password: "qwerty", DB: 0},
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
 			name: "err config not initialized",
@@ -108,7 +109,7 @@ func TestRedis_Options(t *testing.T) {
 				"REDIS_HOSTNAME": "127.0.0.1",
 			},
 			want:    nil,
-			wantErr: true,
+			wantErr: errConfigNotInitialized,
 		},
 		{
 			name: "err parse redis port",
@@ -117,7 +118,7 @@ func TestRedis_Options(t *testing.T) {
 				"REDIS_PORT": "six",
 			},
 			want:    nil,
-			wantErr: true,
+			wantErr: errWrongNetworkPort,
 		},
 		{
 			name: "err parse db index",
@@ -126,7 +127,7 @@ func TestRedis_Options(t *testing.T) {
 				"REDIS_DB": "seven",
 			},
 			want:    nil,
-			wantErr: true,
+			wantErr: errRedisDb,
 		},
 	}
 	for _, tt := range tests {
@@ -135,7 +136,7 @@ func TestRedis_Options(t *testing.T) {
 				t.Setenv(k, v)
 			}
 			got, err := tt.l.Options()
-			if (err != nil) != tt.wantErr {
+			if err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("Options() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
