@@ -11,6 +11,13 @@ import (
 	"github.com/streamdp/ip-info/server"
 )
 
+const (
+	jsonContentType      = "application/json"
+	textPlainContentType = "text/plain"
+
+	contentTypeHeader = "Content-Type"
+)
+
 type Server struct {
 	srv     *http.Server
 	locator server.Locator
@@ -21,9 +28,9 @@ type Server struct {
 
 func (s *Server) initRouter() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /ip-info", s.ipInfo(false))
-	mux.HandleFunc("GET /client-ip", s.ipInfo(true))
-	mux.HandleFunc("GET /healthz", s.healthz())
+	mux.HandleFunc("GET /ip-info", contentTypeRestrictionMW(s.l, s.ipInfo(false), jsonContentType))
+	mux.HandleFunc("GET /client-ip", contentTypeRestrictionMW(s.l, s.ipInfo(true), jsonContentType))
+	mux.HandleFunc("GET /healthz", contentTypeRestrictionMW(s.l, s.healthz(), textPlainContentType))
 
 	return mux
 }
@@ -44,7 +51,7 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 }
 
 func (s *Server) Run() {
-	s.srv.Handler = contentTypeRestrictionMW(s.l, s.initRouter())
+	s.srv.Handler = s.initRouter()
 
 	if s.cfg.EnableLimiter {
 		s.srv.Handler = rateLimiterMW(s.limiter, s.l, s.srv.Handler)
