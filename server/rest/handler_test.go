@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/streamdp/ip-info/database"
@@ -139,21 +140,21 @@ func TestServer_ipInfo(t *testing.T) {
 		locator        server.Locator
 		useClientIp    bool
 		wantStatusCode int
-		wantError      bool
+		wantError      error
 	}{
 		{
 			name:           "wrong ip address",
 			ip:             "8.8.8.A",
 			locator:        &mockLocator{err: server.ErrWrongIpAddress},
 			wantStatusCode: http.StatusBadRequest,
-			wantError:      true,
+			wantError:      server.ErrWrongIpAddress,
 		},
 		{
 			name:           "get ip info",
 			ip:             "8.8.8.8",
 			locator:        &mockLocator{ipInfo: &domain.IpInfo{Ip: net.ParseIP("8.8.8.8")}},
 			wantStatusCode: http.StatusOK,
-			wantError:      false,
+			wantError:      nil,
 		},
 		{
 			name:           "get client ip info",
@@ -161,7 +162,7 @@ func TestServer_ipInfo(t *testing.T) {
 			locator:        &mockLocator{ipInfo: &domain.IpInfo{Ip: net.ParseIP("127.0.0.1")}},
 			useClientIp:    true,
 			wantStatusCode: http.StatusOK,
-			wantError:      false,
+			wantError:      nil,
 		},
 	}
 	for _, tt := range tests {
@@ -204,7 +205,11 @@ func TestServer_ipInfo(t *testing.T) {
 			resp := domain.Response{}
 			_ = json.Unmarshal(body, &resp)
 
-			if !tt.wantError {
+			if tt.wantError != nil {
+				if !strings.Contains(resp.Err, tt.wantError.Error()) {
+					t.Fatalf("unexcpected error: want %v, got: %v", tt.wantError, resp.Err)
+				}
+			} else {
 				if resp.Err != "" {
 					t.Fatalf("response contain error: expected no error, got: %v", resp.Err)
 				}
@@ -218,16 +223,9 @@ func TestServer_ipInfo(t *testing.T) {
 				if content["ip"] != tt.ip {
 					t.Fatalf("expected \"%s\", got: %v", tt.ip, content["ip"])
 				}
-
-				return
-			}
-
-			if resp.Err == "" {
-				t.Fatalf("response doesn't contain error: expected error, got: \"\"")
 			}
 		})
 	}
-
 }
 
 type mockLocator struct {
