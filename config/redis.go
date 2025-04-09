@@ -51,7 +51,7 @@ func (r *Redis) Options() (*redis.Options, error) {
 	if p := os.Getenv("REDIS_PORT"); p != "" {
 		n, err := strconv.Atoi(p)
 		if err != nil {
-			return nil, fmt.Errorf("invalid REDIS_PORT: %w", err)
+			return nil, fmt.Errorf("invalid REDIS_PORT: %w", errWrongNetworkPort)
 		}
 		r.Port = n
 	}
@@ -63,7 +63,7 @@ func (r *Redis) Options() (*redis.Options, error) {
 	if d := os.Getenv("REDIS_DB"); d != "" {
 		n, err := strconv.Atoi(d)
 		if err != nil {
-			return nil, fmt.Errorf("invalid REDIS_DB: %w", err)
+			return nil, fmt.Errorf("invalid REDIS_DB: %w", errRedisDb)
 		}
 		r.Db = n
 	}
