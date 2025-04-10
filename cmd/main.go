@@ -37,8 +37,8 @@ func main() {
 	}
 
 	defer func(d database.Database) {
-		if err = d.Close(); err != nil {
-			l.Println(err)
+		if errClose := d.Close(); errClose != nil {
+			l.Println(errClose)
 		}
 	}(d)
 
@@ -51,8 +51,8 @@ func main() {
 			l.Fatal(err)
 		}
 		defer func(c *redis_client.Client) {
-			if err = c.Close(); err != nil {
-				l.Println(err)
+			if errClose := c.Close(); errClose != nil {
+				l.Println(errClose)
 			}
 		}(redisCache)
 	}
