@@ -8,18 +8,18 @@ import (
 
 var (
 	errCacheTTL   = errors.New("TTL should be positive number")
-	errWrongCache = errors.New("wrong cache provider field")
+	errWrongCache = errors.New("wrong cacher field")
 )
 
 type Cache struct {
-	Provider string
-	TTL      int
+	Cacher string
+	TTL    int
 }
 
 var caches = []string{"microcache", "redis"}
 
 func (c *Cache) Validate() error {
-	if c.Provider == "" || !slices.Contains(caches, c.Provider) {
+	if c.Cacher == "" || !slices.Contains(caches, c.Cacher) {
 		return errWrongCache
 	}
 	if c.TTL <= 0 {

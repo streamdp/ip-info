@@ -18,12 +18,12 @@ const (
 	redisDefaultPort = 6379
 	redisDefaultDb   = 0
 
-	defaultLimiterProvider = "golimiter"
-	defaultRateLimit       = 10
-	defaultRateLimitTTL    = 60
+	defaultLimiter      = "golimiter"
+	defaultRateLimit    = 10
+	defaultRateLimitTTL = 60
 
-	defaultCacheProvider = "microcache"
-	defaultCacheTTL      = 3600
+	defaultCacher   = "microcache"
+	defaultCacheTTL = 3600
 )
 
 var (
@@ -60,12 +60,12 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	flag.StringVar(&redisCfg.Host, "redis-host", redisDefaultHost, "redis host")
 	flag.IntVar(&redisCfg.Port, "redis-port", redisDefaultPort, "redis port")
 	flag.IntVar(&redisCfg.Db, "redis-db", redisDefaultDb, "redis database")
-	flag.StringVar(&limiterCfg.Provider, "limiter-provider", defaultLimiterProvider, "what use to limit "+
+	flag.StringVar(&limiterCfg.Limiter, "limiter", defaultLimiter, "what use to limit "+
 		"queries: redis_rate, golimiter")
 	flag.IntVar(&limiterCfg.RateLimit, "rate-limit", defaultRateLimit, "rate limit, rps per client")
 	flag.IntVar(&limiterCfg.TTL, "rate-limit-ttl", defaultRateLimitTTL, "rate limit entries ttl in seconds")
 
-	flag.StringVar(&cacheCfg.Provider, "cache-provider", defaultCacheProvider, "where to store "+
+	flag.StringVar(&cacheCfg.Cacher, "cacher", defaultCacher, "where to store "+
 		"cache entries: redis, microcache")
 	flag.IntVar(&cacheCfg.TTL, "cache-ttl", defaultCacheTTL, "cache ttl in seconds")
 
@@ -97,8 +97,8 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	}
 
 	if appCfg.EnableLimiter {
-		if l := os.Getenv("IP_INFO_LIMITER_PROVIDER"); l != "" {
-			limiterCfg.Provider = l
+		if l := os.Getenv("IP_INFO_LIMITER"); l != "" {
+			limiterCfg.Limiter = l
 		}
 
 		if rl := os.Getenv("IP_INFO_RATE_LIMIT"); rl != "" {
@@ -120,8 +120,8 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	}
 
 	if !appCfg.DisableCache {
-		if cp := os.Getenv("IP_INFO_CACHE_PROVIDER"); cp != "" {
-			cacheCfg.Provider = cp
+		if cp := os.Getenv("IP_INFO_CACHER"); cp != "" {
+			cacheCfg.Cacher = cp
 		}
 		if ttl := os.Getenv("IP_INFO_CACHE_TTL"); ttl != "" {
 			n, _ := strconv.Atoi(strings.TrimSpace(ttl))

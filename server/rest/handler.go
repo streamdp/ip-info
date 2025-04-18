@@ -8,7 +8,7 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/iplocator"
 	"github.com/streamdp/ip-info/server"
 )
 
@@ -70,13 +70,13 @@ func getHttpStatus(err error) int {
 }
 
 func httpClientIp(r *http.Request) string {
-	if ip := r.Header.Get(ip_locator.CfConnectingIp); ip != "" {
+	if ip := r.Header.Get(iplocator.CfConnectingIp); ip != "" {
 		return ip
 	}
-	if ip := r.Header.Get(ip_locator.XForwardedFor); ip != "" {
+	if ip := r.Header.Get(iplocator.XForwardedFor); ip != "" {
 		return ip
 	}
-	if ip := r.Header.Get(ip_locator.XRealIp); ip != "" {
+	if ip := r.Header.Get(iplocator.XRealIp); ip != "" {
 		return ip
 	}
 

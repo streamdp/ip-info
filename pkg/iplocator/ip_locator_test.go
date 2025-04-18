@@ -1,4 +1,4 @@
-package ip_locator
+package iplocator
 
 import (
 	"context"
@@ -167,10 +167,10 @@ type cacheMock struct {
 	ipInfo *domain.IpInfo
 }
 
-func (c *cacheMock) Set(_ *domain.IpInfo) error {
+func (c *cacheMock) Set(context.Context, *domain.IpInfo) error {
 	return c.setErr
 }
 
-func (c *cacheMock) Get(string) (*domain.IpInfo, error) {
+func (c *cacheMock) Get(context.Context, string) (*domain.IpInfo, error) {
 	return c.ipInfo, c.getErr
 }

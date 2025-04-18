@@ -9,7 +9,7 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/iplocator"
 	"github.com/streamdp/ip-info/server"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 	"google.golang.org/grpc/codes"
@@ -67,13 +67,13 @@ func convertIpInfoDto(dto *domain.IpInfo) *v1.Response {
 
 func grpcClientIp(ctx context.Context) string {
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if ipArr := md.Get(ip_locator.CfConnectingIp); len(ipArr) != 0 && ipArr[0] != "" {
+		if ipArr := md.Get(iplocator.CfConnectingIp); len(ipArr) != 0 && ipArr[0] != "" {
 			return ipArr[0]
 		}
-		if ipArr := md.Get(ip_locator.XForwardedFor); len(ipArr) != 0 && ipArr[0] != "" {
+		if ipArr := md.Get(iplocator.XForwardedFor); len(ipArr) != 0 && ipArr[0] != "" {
 			return ipArr[0]
 		}
-		if ipArr := md.Get(ip_locator.XRealIp); len(ipArr) != 0 && ipArr[0] != "" {
+		if ipArr := md.Get(iplocator.XRealIp); len(ipArr) != 0 && ipArr[0] != "" {
 			return ipArr[0]
 		}
 	}

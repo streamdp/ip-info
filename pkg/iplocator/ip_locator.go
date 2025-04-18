@@ -1,4 +1,4 @@
-package ip_locator
+package iplocator
 
 import (
 	"context"
@@ -24,8 +24,8 @@ type Database interface {
 }
 
 type IpCache interface {
-	Set(ipInfo *domain.IpInfo) error
-	Get(ip string) (*domain.IpInfo, error)
+	Set(ctx context.Context, ipInfo *domain.IpInfo) error
+	Get(ctx context.Context, ip string) (*domain.IpInfo, error)
 }
 
 type IpLocator struct {
@@ -55,7 +55,7 @@ func (l *IpLocator) GetIpInfo(ctx context.Context, ipString string) (*domain.IpI
 		return ipInfo, nil
 	}
 
-	if ipInfo, err := l.ic.Get(ipString); err == nil {
+	if ipInfo, err := l.ic.Get(ctx, ipString); err == nil {
 		return ipInfo, nil
 	}
 
@@ -64,7 +64,7 @@ func (l *IpLocator) GetIpInfo(ctx context.Context, ipString string) (*domain.IpI
 		return nil, fmt.Errorf("could not get ip location: %w", err)
 	}
 
-	if err = l.ic.Set(ipInfo); err != nil {
+	if err = l.ic.Set(ctx, ipInfo); err != nil {
 		return nil, fmt.Errorf("ip_cache: %w", err)
 	}
 

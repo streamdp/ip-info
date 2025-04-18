@@ -1,4 +1,4 @@
-package redis_rate
+package redislimiter
 
 import (
 	"context"

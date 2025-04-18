@@ -1,6 +1,7 @@
-package ip_cache
+package ipcache
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,9 +11,9 @@ import (
 	"github.com/streamdp/ip-info/domain"
 )
 
-type CacheProvider interface {
-	Get(key string) (any, error)
-	Set(key string, value any, expiration time.Duration) error
+type Cacher interface {
+	Get(ctx context.Context, key string) (any, error)
+	Set(ctx context.Context, key string, value any, expiration time.Duration) error
 }
 
 var (
@@ -21,17 +22,17 @@ var (
 )
 
 type ipCache struct {
-	cp CacheProvider
+	cp Cacher
 
 	cfg *config.Cache
 }
 
-func New(cp CacheProvider, cfg *config.Cache) (*ipCache, error) {
+func New(cp Cacher, cfg *config.Cache) (*ipCache, error) {
 	return &ipCache{cp: cp, cfg: cfg}, nil
 }
 
-func (i *ipCache) Set(ipInfo *domain.IpInfo) error {
-	if err := i.cp.Set(
+func (i *ipCache) Set(ctx context.Context, ipInfo *domain.IpInfo) error {
+	if err := i.cp.Set(ctx,
 		ipInfo.Ip.String(),
 		ipInfo.Bytes(),
 		time.Duration(i.cfg.TTL)*time.Second,
@@ -42,8 +43,8 @@ func (i *ipCache) Set(ipInfo *domain.IpInfo) error {
 	return nil
 }
 
-func (i *ipCache) Get(ip string) (*domain.IpInfo, error) {
-	res, err := i.cp.Get(ip)
+func (i *ipCache) Get(ctx context.Context, ip string) (*domain.IpInfo, error) {
+	res, err := i.cp.Get(ctx, ip)
 	if err != nil {
 		return nil, fmt.Errorf("ip_cache: %w", err)
 	}

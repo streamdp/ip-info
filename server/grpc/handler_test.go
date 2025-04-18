@@ -9,7 +9,7 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/iplocator"
 	"github.com/streamdp/ip-info/server"
 	v1 "github.com/streamdp/ip-info/server/grpc/api/v1"
 	"google.golang.org/grpc/codes"
@@ -75,17 +75,17 @@ func Test_grpcClientIp(t *testing.T) {
 	}{
 		{
 			name: "get ip from cf-connecting-ip header",
-			ctx:  makeContextWithHeader(ip_locator.CfConnectingIp, "127.0.0.1"),
+			ctx:  makeContextWithHeader(iplocator.CfConnectingIp, "127.0.0.1"),
 			want: "127.0.0.1",
 		},
 		{
 			name: "get ip from x-forwarded-for header",
-			ctx:  makeContextWithHeader(ip_locator.XForwardedFor, "8.8.8.8"),
+			ctx:  makeContextWithHeader(iplocator.XForwardedFor, "8.8.8.8"),
 			want: "8.8.8.8",
 		},
 		{
 			name: "get ip from x-real-ip header",
-			ctx:  makeContextWithHeader(ip_locator.XRealIp, "12.12.23.14"),
+			ctx:  makeContextWithHeader(iplocator.XRealIp, "12.12.23.14"),
 			want: "12.12.23.14",
 		},
 		{

@@ -14,7 +14,7 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/iplocator"
 	"github.com/streamdp/ip-info/server"
 )
 
@@ -37,17 +37,17 @@ func Test_httpClientIp(t *testing.T) {
 	}{
 		{
 			name:    "get ip from cf-connecting-ip header",
-			request: createRequestWithHeader(ip_locator.CfConnectingIp, "127.0.0.1"),
+			request: createRequestWithHeader(iplocator.CfConnectingIp, "127.0.0.1"),
 			want:    "127.0.0.1",
 		},
 		{
 			name:    "get ip from x-forwarded-for header",
-			request: createRequestWithHeader(ip_locator.XForwardedFor, "82.12.32.1"),
+			request: createRequestWithHeader(iplocator.XForwardedFor, "82.12.32.1"),
 			want:    "82.12.32.1",
 		},
 		{
 			name:    "get ip from x-real-ip header",
-			request: createRequestWithHeader(ip_locator.XRealIp, "8.8.8.8"),
+			request: createRequestWithHeader(iplocator.XRealIp, "8.8.8.8"),
 			want:    "8.8.8.8",
 		},
 		{
@@ -185,7 +185,7 @@ func TestServer_ipInfo(t *testing.T) {
 			var r *http.Request
 			if tt.useClientIp {
 				r = httptest.NewRequest(http.MethodGet, "/client-ip", nil)
-				r.Header.Set(ip_locator.XRealIp, tt.ip)
+				r.Header.Set(iplocator.XRealIp, tt.ip)
 			} else {
 				r = httptest.NewRequest(http.MethodGet, "/ip-info?ip="+tt.ip, nil)
 			}
