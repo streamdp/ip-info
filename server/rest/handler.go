@@ -70,13 +70,13 @@ func getHttpStatus(err error) int {
 }
 
 func httpClientIp(r *http.Request) string {
-	if ip := r.Header.Get(iplocator.CfConnectingIp); ip != "" {
+	if ip := r.Header.Get(iplocator.XRealIp); ip != "" {
 		return ip
 	}
 	if ip := r.Header.Get(iplocator.XForwardedFor); ip != "" {
 		return ip
 	}
-	if ip := r.Header.Get(iplocator.XRealIp); ip != "" {
+	if ip := r.Header.Get(iplocator.CfConnectingIp); ip != "" {
 		return ip
 	}
 
