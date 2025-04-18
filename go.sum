@@ -26,10 +26,10 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/redis/go-redis/v9 v9.7.3 h1:YpPyAayJV+XErNsatSElgRZZVCwXX9QzkKYNvO7x0wM=
 github.com/redis/go-redis/v9 v9.7.3/go.mod h1:bGUrSggJ9X9GUmZpZNEOQKaANxSGgOEBRltRTZHSvrA=
-github.com/streamdp/golimiter v1.0.1 h1:rNmMR74+GJQLCJOIJGPo2f+lr4U3uUP2P2SSD9PBxaU=
-github.com/streamdp/golimiter v1.0.1/go.mod h1:OFEbvQwrpz5Q82637mMwHHVS7HD+XE+JdrLxGwJePVs=
-github.com/streamdp/microcache v1.2.1 h1:34uQlG+6TcteVCfKs00YtmZHubV8N1rhnIB2nTDwIeQ=
-github.com/streamdp/microcache v1.2.1/go.mod h1:PKCYNMwSUhpR72K6lRmjCATb1AX9CDENCEUcPyGq6To=
+github.com/streamdp/golimiter v1.1.3 h1:0LeRPPgbouu9z7Ls93uADIvfaBKTMHWuPLUenzpi59U=
+github.com/streamdp/golimiter v1.1.3/go.mod h1:ruz87VaRVQuU78ghfu99Pipn42NUvyEtSRae4YGIl5E=
+github.com/streamdp/microcache v1.3.0 h1:7T6Xg4IrhbhQzD0w+sqkxs0nWdQRUNYAwJb4f1fiZFI=
+github.com/streamdp/microcache v1.3.0/go.mod h1:PKCYNMwSUhpR72K6lRmjCATb1AX9CDENCEUcPyGq6To=
 github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=

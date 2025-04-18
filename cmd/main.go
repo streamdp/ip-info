@@ -12,7 +12,6 @@ import (
 	"github.com/streamdp/ip-info/pkg/golimiter"
 	"github.com/streamdp/ip-info/pkg/ipcache"
 	"github.com/streamdp/ip-info/pkg/iplocator"
-	"github.com/streamdp/ip-info/pkg/microcache"
 	"github.com/streamdp/ip-info/pkg/rediscache"
 	"github.com/streamdp/ip-info/pkg/redisclient"
 	"github.com/streamdp/ip-info/pkg/redislimiter"
@@ -20,6 +19,7 @@ import (
 	"github.com/streamdp/ip-info/server/grpc"
 	"github.com/streamdp/ip-info/server/rest"
 	"github.com/streamdp/ip-info/updater"
+	"github.com/streamdp/microcache"
 )
 
 func main() {
@@ -90,7 +90,7 @@ func main() {
 		case "microcache":
 			fallthrough
 		default:
-			cacher = microcache.New(ctx)
+			cacher = microcache.New(ctx, 60000)
 		}
 		if ipInfoCache, err = ipcache.New(cacher, cacheCfg); err != nil {
 			l.Fatal(err)
