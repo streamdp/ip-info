@@ -17,8 +17,8 @@ type Cacher interface {
 }
 
 var (
-	errTypeAssertion     = errors.New("failed to process cached response")
-	errUnmarshalResponse = errors.New("failed to unmarshal response")
+	errTypeAssertion     = errors.New("failed to process cache response")
+	errUnmarshalResponse = errors.New("failed to unmarshal cache response")
 )
 
 type ipCache struct {
