@@ -21,8 +21,8 @@ func New(ctx context.Context, cfg *config.Limiter) *limiter {
 	}
 }
 
-func (l *limiter) Limit(_ context.Context, ip string) error {
-	if l.l.Allow(ip, l.rate, time.Second) {
+func (l *limiter) Limit(ctx context.Context, ip string) error {
+	if l.l.Allow(ctx, ip, l.rate, time.Second) {
 		return nil
 	}
 
