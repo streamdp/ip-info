@@ -35,13 +35,13 @@ func main() {
 		l.Fatalln(errDb)
 		return
 	}
-	defer func(d *database.Db) {
+	defer func() {
 		if errClose := d.Close(); errClose != nil {
-
+			l.Printf("failed to close database: %v", errClose)
 		}
-	}(d)
+	}()
 
-	go updater.New(ctx, d, l).PullUpdates()
+	go updater.New(d, l).PullUpdates(ctx)
 
 	var redisCache *redis_client.Client
 	if appCfg.EnableLimiter && limiterCfg.Provider == "redis_rate" ||
