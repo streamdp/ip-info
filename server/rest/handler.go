@@ -2,6 +2,7 @@ package rest
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -14,8 +15,11 @@ import (
 func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) (err error) {
 	w.Header().Set(contentTypeHeader, jsonContentType)
 	w.WriteHeader(code)
-	_, err = w.Write(response.Bytes())
-	return err
+	if _, err = w.Write(response.Bytes()); err != nil {
+		return fmt.Errorf("failed to write response: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Request) {
@@ -25,7 +29,7 @@ func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Reques
 			ipString = httpClientIp(r)
 		}
 
-		ipInfo, err := s.locator.GetIpInfo(ipString)
+		ipInfo, err := s.locator.GetIpInfo(r.Context(), ipString)
 		if err != nil {
 			s.l.Println(err)
 		}

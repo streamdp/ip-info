@@ -1,5 +1,7 @@
 export CGO_ENABLED=0
 
+PATH := $(GOPATH)/bin:$(PATH)
+
 all: generate test build
 
 build:

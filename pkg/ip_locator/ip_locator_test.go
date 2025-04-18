@@ -1,6 +1,7 @@
 package ip_locator
 
 import (
+	"context"
 	"errors"
 	"net"
 	"reflect"
@@ -128,7 +129,7 @@ func TestLocateIp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotIpInfo, err := tt.locator.GetIpInfo(tt.ipString)
+			gotIpInfo, err := tt.locator.GetIpInfo(context.Background(), tt.ipString)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetIpInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -145,11 +146,11 @@ type databaseMock struct {
 	ipInfo *domain.IpInfo
 }
 
-func (d *databaseMock) IpInfo(_ net.IP) (*domain.IpInfo, error) {
+func (d *databaseMock) IpInfo(_ context.Context, _ net.IP) (*domain.IpInfo, error) {
 	return d.ipInfo, d.err
 }
 
-func (d *databaseMock) UpdateIpDatabase() (nextUpdate time.Duration, err error) {
+func (d *databaseMock) UpdateIpDatabase(_ context.Context) (nextUpdate time.Duration, err error) {
 	return 0, nil
 }
 

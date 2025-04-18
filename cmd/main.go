@@ -30,15 +30,14 @@ func main() {
 
 	ctx := context.Background()
 
-	d, errDb := database.Connect(ctx, appCfg, l)
+	d, errDb := database.Connect(appCfg, l)
 	if errDb != nil {
 		l.Fatalln(errDb)
 		return
 	}
-
-	defer func(d database.Database) {
+	defer func(d *database.Db) {
 		if errClose := d.Close(); errClose != nil {
-			l.Println(errClose)
+
 		}
 	}(d)
 

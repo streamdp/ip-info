@@ -3,7 +3,6 @@ package updater
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -17,7 +16,7 @@ type DataPuller interface {
 }
 
 type DatabaseUpdater interface {
-	UpdateIpDatabase() (duration time.Duration, err error)
+	UpdateIpDatabase(ctx context.Context) (duration time.Duration, err error)
 }
 
 type puller struct {
@@ -48,20 +47,20 @@ func (p *puller) PullUpdates() {
 			t.Reset(repeatIntervalOnError)
 
 			p.l.Println("ip database update started")
-			nextUpdate, err := p.d.UpdateIpDatabase()
+			nextUpdate, err := p.d.UpdateIpDatabase(p.ctx)
 			if err != nil {
 				p.l.Println(err)
 
 				if !errors.Is(err, database.ErrNoUpdateRequired) {
-					p.l.Println(fmt.Sprintf("ip database update interrupted, retry after %0.1fs",
-						repeatIntervalOnError.Seconds()))
+					p.l.Printf("ip database update interrupted, retry after %0.1fs",
+						repeatIntervalOnError.Seconds())
 					continue
 				}
 			}
 
 			t.Reset(nextUpdate)
-			p.l.Println(fmt.Sprintf("ip database update completed, next update through %0.1fh",
-				nextUpdate.Hours()))
+			p.l.Printf("ip database update completed, next update through %0.1fh",
+				nextUpdate.Hours())
 		}
 	}
 }

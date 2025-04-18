@@ -1,10 +1,11 @@
 package ip_locator
 
 import (
+	"context"
 	"fmt"
 	"net"
+	"time"
 
-	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/server"
 )
@@ -15,31 +16,38 @@ const (
 	XRealIp        = "x-real-ip"
 )
 
+type Database interface {
+	IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error)
+	UpdateIpDatabase(ctx context.Context) (nextUpdate time.Duration, err error)
+
+	Close() error
+}
+
 type IpCache interface {
 	Set(*domain.IpInfo) error
 	Get(string) (*domain.IpInfo, error)
 }
 
 type IpLocator struct {
-	d  database.Database
+	d  Database
 	ic IpCache
 }
 
-func New(d database.Database, ic IpCache) *IpLocator {
+func New(d Database, ic IpCache) *IpLocator {
 	return &IpLocator{
 		d:  d,
 		ic: ic,
 	}
 }
 
-func (l *IpLocator) GetIpInfo(ipString string) (ipInfo *domain.IpInfo, err error) {
+func (l *IpLocator) GetIpInfo(ctx context.Context, ipString string) (ipInfo *domain.IpInfo, err error) {
 	ip := net.ParseIP(ipString)
 	if ip == nil {
 		return nil, fmt.Errorf("%w: %s", server.ErrWrongIpAddress, ipString)
 	}
 
 	if l.ic == nil {
-		if ipInfo, err = l.d.IpInfo(ip); err != nil {
+		if ipInfo, err = l.d.IpInfo(ctx, ip); err != nil {
 			return nil, fmt.Errorf("could not get ip location: %w", err)
 		}
 
@@ -47,7 +55,7 @@ func (l *IpLocator) GetIpInfo(ipString string) (ipInfo *domain.IpInfo, err error
 	}
 
 	if ipInfo, err = l.ic.Get(ipString); err != nil {
-		if ipInfo, err = l.d.IpInfo(ip); err != nil {
+		if ipInfo, err = l.d.IpInfo(ctx, ip); err != nil {
 			return nil, fmt.Errorf("could not get ip location: %w", err)
 		}
 		if err = l.ic.Set(ipInfo); err != nil {

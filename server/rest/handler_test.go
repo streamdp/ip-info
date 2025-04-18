@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -233,7 +234,7 @@ type mockLocator struct {
 	err    error
 }
 
-func (ml *mockLocator) GetIpInfo(_ string) (*domain.IpInfo, error) {
+func (ml *mockLocator) GetIpInfo(_ context.Context, _ string) (*domain.IpInfo, error) {
 	if ml.err != nil {
 		return nil, ml.err
 	}

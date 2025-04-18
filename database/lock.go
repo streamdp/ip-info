@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -10,20 +11,21 @@ const lockTimeout = 30 * time.Minute
 
 var errLockTimeout = errors.New("lock timeout")
 
-func (d *db) isLocked() (l bool) {
-	_ = d.DB.QueryRowContext(d.ctx,
+func (d *db) isLocked(ctx context.Context) (l bool) {
+	_ = d.QueryRowContext(ctx,
 		"select true from pg_tables where schemaname='public' and tablename='_lock';",
 	).Scan(&l)
+
 	return
 }
 
-func (d *db) lockStatus() (err error) {
+func (d *db) lockStatus(ctx context.Context) error {
 	var createdAt time.Time
-	if err = d.DB.QueryRowContext(d.ctx, "select created_at from _lock;").Scan(&createdAt); err != nil {
-		return
+	if err := d.QueryRowContext(ctx, "select created_at from _lock;").Scan(&createdAt); err != nil {
+		return fmt.Errorf("failed to get lock status, %w", err)
 	}
 
-	if t := time.Now().Sub(createdAt); t < lockTimeout {
+	if t := time.Since(createdAt); t < lockTimeout {
 		return fmt.Errorf("lock already acquired %0.1fm ago (timeout=%0.1fm)",
 			t.Minutes(), lockTimeout.Minutes())
 	}
@@ -31,28 +33,42 @@ func (d *db) lockStatus() (err error) {
 	return errLockTimeout
 }
 
-func (d *db) acquireLock() (err error) {
-	if !d.isLocked() {
+func (d *db) acquireLock(ctx context.Context) error {
+	if !d.isLocked(ctx) {
 		d.l.Println("acquiring lock")
-		_, err = d.DB.ExecContext(d.ctx, "select * into _lock from (values(now())) as a(created_at);")
-		return
+
+		if _, err := d.ExecContext(ctx, "select * into _lock from (values(now())) as a(created_at);"); err != nil {
+			return fmt.Errorf("failed to acquire lock, %w", err)
+		}
+
+		return nil
 	}
 
-	if err = d.lockStatus(); errors.Is(err, errLockTimeout) {
+	if err := d.lockStatus(ctx); errors.Is(err, errLockTimeout) {
 		d.l.Println("previous lock has expired")
-		return d.resetLock()
+
+		return d.resetLock(ctx)
 	}
-	return
+
+	return nil
 }
 
-func (d *db) resetLock() (err error) {
+func (d *db) resetLock(ctx context.Context) error {
 	d.l.Println("resetting lock")
-	_, err = d.DB.ExecContext(d.ctx, "update _lock set created_at=now();")
-	return
+
+	if _, err := d.ExecContext(ctx, "update _lock set created_at=now();"); err != nil {
+		return fmt.Errorf("failed to reset lock, %w", err)
+	}
+
+	return nil
 }
 
-func (d *db) releaseLock() (err error) {
+func (d *db) releaseLock(ctx context.Context) error {
 	d.l.Println("releasing lock")
-	_, err = d.DB.ExecContext(d.ctx, "drop table if exists _lock;")
-	return
+
+	if _, err := d.ExecContext(ctx, "drop table if exists _lock;"); err != nil {
+		return fmt.Errorf("failed to release lock, %w", err)
+	}
+
+	return nil
 }

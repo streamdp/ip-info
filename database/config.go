@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -14,10 +15,10 @@ type configDto struct {
 	BackupTable string    `db:"backup_table"`
 }
 
-func (d *db) loadDatabaseConfig() (err error) {
+func (d *db) loadDatabaseConfig(ctx context.Context) error {
 	dto := &configDto{}
 
-	if err = d.DB.QueryRowContext(d.ctx, fmt.Sprintf("select * from %s;", configTableName)).Scan(
+	if err := d.QueryRowContext(ctx, fmt.Sprintf("select * from %s;", configTableName)).Scan(
 		&dto.LastUpdate,
 		&dto.ActiveTable,
 		&dto.BackupTable,
@@ -29,21 +30,23 @@ func (d *db) loadDatabaseConfig() (err error) {
 	d.cfg.ActiveTable = dto.ActiveTable
 	d.cfg.BackupTable = dto.BackupTable
 
-	return
+	return nil
 }
 
-func (d *db) updateDatabaseConfig() (err error) {
+func (d *db) updateDatabaseConfig(ctx context.Context) error {
 	d.l.Println("updating database config")
-	if _, err = d.DB.ExecContext(
-		d.ctx, fmt.Sprintf(
-			"update %s set last_update=now() at time zone 'utc', active_table='%s', backup_table='%s';",
-			configTableName,
-			d.cfg.ActiveTable,
-			d.cfg.BackupTable,
-		),
-	); err == nil {
+
+	_, err := d.ExecContext(ctx, fmt.Sprintf(
+		"update %s set last_update=now() at time zone 'utc', active_table='%s', backup_table='%s';",
+		configTableName,
+		d.cfg.ActiveTable,
+		d.cfg.BackupTable,
+	))
+	if err == nil {
 		d.cfg.LastUpdate = time.Now().UTC()
+	} else {
+		return fmt.Errorf("error updating config: %w", err)
 	}
 
-	return
+	return nil
 }
