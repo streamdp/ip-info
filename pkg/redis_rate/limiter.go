@@ -22,7 +22,7 @@ type limiter struct {
 	limiter *redis_rate.Limiter
 }
 
-func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (server.Limiter, error) {
+func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (*limiter, error) {
 	return &limiter{
 		client: client,
 		ctx:    ctx,

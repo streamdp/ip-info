@@ -34,5 +34,6 @@ func (l *Limiter) Validate() error {
 	if l.TTL <= 0 {
 		return fmt.Errorf("rate_limiter: %w", errRateLimitTTL)
 	}
+
 	return nil
 }

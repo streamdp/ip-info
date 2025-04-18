@@ -18,6 +18,7 @@ var (
 	ErrNoUpdateRequired = errors.New("no update required")
 	ErrNoIpAddress      = errors.New("no ip address in the database")
 	errUpdateIpDatabase = errors.New("failed to update ip database")
+	errDatabaseError    = errors.New("database error")
 )
 
 type ipToCityDto struct {
@@ -109,7 +110,7 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 			return nil, ErrNoIpAddress
 		}
 
-		return nil, err
+		return nil, errDatabaseError
 	}
 
 	return &domain.IpInfo{
@@ -123,15 +124,15 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 	}, nil
 }
 
-func (d *db) UpdateIpDatabase(ctx context.Context) (nextUpdate time.Duration, err error) {
-	if err = d.loadDatabaseConfig(ctx); err != nil {
+func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
+	if err := d.loadDatabaseConfig(ctx); err != nil {
 		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
 	if d.cfg.LastUpdate.Month() == time.Now().Month() {
 		return nextUpdateInterval(d.cfg.LastUpdate), ErrNoUpdateRequired
 	}
 
-	if err = d.acquireLock(ctx); err != nil {
+	if err := d.acquireLock(ctx); err != nil {
 		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
 	defer func() {
@@ -140,21 +141,21 @@ func (d *db) UpdateIpDatabase(ctx context.Context) (nextUpdate time.Duration, er
 		}
 	}()
 
-	if err = d.truncate(ctx); err != nil {
+	if err := d.truncate(ctx); err != nil {
 		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
-	if err = d.dropIndex(ctx); err != nil {
+	if err := d.dropIndex(ctx); err != nil {
 		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
-	if err = d.importCsv(ctx, buildDownloadUrl(time.Now())); err != nil {
+	if err := d.importCsv(ctx, buildDownloadUrl(time.Now())); err != nil {
 		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
-	if err = d.createIndex(ctx); err != nil {
+	if err := d.createIndex(ctx); err != nil {
 		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
 	d.switchTables()
 
-	if err = d.updateDatabaseConfig(ctx); err != nil {
+	if err := d.updateDatabaseConfig(ctx); err != nil {
 		d.l.Printf("update ip database: %v", err)
 	}
 
@@ -166,7 +167,7 @@ func buildDownloadUrl(t time.Time) string {
 
 	monthStr := strconv.Itoa(int(month))
 	if month < 10 {
-		monthStr = fmt.Sprintf("0%s", monthStr)
+		monthStr = "0" + monthStr
 	}
 
 	return fmt.Sprintf(downloadUrl, year, monthStr)

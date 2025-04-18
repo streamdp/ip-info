@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+var errCommon = errors.New("error")
+
 func TestNewResponse(t *testing.T) {
 	type args struct {
 		err     error
@@ -30,7 +32,7 @@ func TestNewResponse(t *testing.T) {
 		{
 			name: "get response with err",
 			args: args{
-				err:     errors.New("error"),
+				err:     errCommon,
 				content: "content",
 			},
 			want: &Response{

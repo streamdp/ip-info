@@ -25,5 +25,6 @@ func (c *Cache) Validate() error {
 	if c.TTL <= 0 {
 		return fmt.Errorf("cache: %w", errCacheTTL)
 	}
+
 	return nil
 }

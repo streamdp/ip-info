@@ -13,6 +13,7 @@ func rateLimiterUSI(l server.Limiter) grpc.UnaryServerInterceptor {
 		if err := l.Limit(grpcClientIp(ctx)); err != nil {
 			return nil, status.Error(getGrpcCode(err), err.Error())
 		}
+
 		return handler(ctx, req)
 	}
 }

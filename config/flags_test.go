@@ -109,6 +109,7 @@ func TestLoadConfig(t *testing.T) {
 			gotApp, gotRedis, gotLimiter, gotCache, err := LoadConfig()
 			if err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("LoadConfig() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(gotApp, tt.wantApp) {

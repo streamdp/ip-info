@@ -9,14 +9,19 @@ import (
 
 const lockTimeout = 30 * time.Minute
 
-var errLockTimeout = errors.New("lock timeout")
+var (
+	errLockTimeout  = errors.New("lock timeout")
+	errLockAcquired = errors.New("lock already acquired")
+)
 
-func (d *db) isLocked(ctx context.Context) (l bool) {
+func (d *db) isLocked(ctx context.Context) bool {
+	var isLocked bool
+
 	_ = d.QueryRowContext(ctx,
 		"select true from pg_tables where schemaname='public' and tablename='_lock';",
-	).Scan(&l)
+	).Scan(&isLocked)
 
-	return
+	return isLocked
 }
 
 func (d *db) lockStatus(ctx context.Context) error {
@@ -26,8 +31,7 @@ func (d *db) lockStatus(ctx context.Context) error {
 	}
 
 	if t := time.Since(createdAt); t < lockTimeout {
-		return fmt.Errorf("lock already acquired %0.1fm ago (timeout=%0.1fm)",
-			t.Minutes(), lockTimeout.Minutes())
+		return errLockAcquired
 	}
 
 	return errLockTimeout

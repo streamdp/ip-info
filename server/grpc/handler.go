@@ -26,6 +26,7 @@ func (s *Server) GetIpInfo(ctx context.Context, in *v1.Ip) (*v1.Response, error)
 	response, err := s.locator.GetIpInfo(ctx, in.GetIp())
 	if err != nil {
 		s.l.Println(err)
+
 		return nil, status.Error(getGrpcCode(err), err.Error())
 	}
 
@@ -39,6 +40,7 @@ func (s *Server) GetClientIp(ctx context.Context, _ *emptypb.Empty) (*v1.Respons
 	response, err := s.locator.GetIpInfo(ctx, grpcClientIp(ctx))
 	if err != nil {
 		s.l.Println(err)
+
 		return nil, status.Error(getGrpcCode(err), err.Error())
 	}
 
@@ -51,6 +53,7 @@ func convertIpInfoDto(dto *domain.IpInfo) *v1.Response {
 			if ip == nil {
 				return ""
 			}
+
 			return ip.String()
 		}(dto.Ip),
 		Continent: dto.Continent,

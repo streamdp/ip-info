@@ -13,6 +13,8 @@ import (
 	"github.com/streamdp/ip-info/server"
 )
 
+var errCommon = errors.New("redis: nil")
+
 func TestLocateIp(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -86,7 +88,7 @@ func TestLocateIp(t *testing.T) {
 					ipInfo: nil,
 				},
 				&cacheMock{
-					getErr: errors.New("redis: nil"),
+					getErr: errCommon,
 				},
 			),
 			ipString:   "82.28.25.43",
@@ -111,8 +113,8 @@ func TestLocateIp(t *testing.T) {
 			locator: New(
 				&databaseMock{},
 				&cacheMock{
-					getErr: errors.New("redis: nil"),
-					setErr: errors.New("cache: redis: nil"),
+					getErr: errCommon,
+					setErr: errCommon,
 				},
 			),
 			ipString:   "82.28.25.43",
@@ -132,6 +134,7 @@ func TestLocateIp(t *testing.T) {
 			gotIpInfo, err := tt.locator.GetIpInfo(context.Background(), tt.ipString)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetIpInfo() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(gotIpInfo, tt.wantIpInfo) {
@@ -150,7 +153,7 @@ func (d *databaseMock) IpInfo(_ context.Context, _ net.IP) (*domain.IpInfo, erro
 	return d.ipInfo, d.err
 }
 
-func (d *databaseMock) UpdateIpDatabase(_ context.Context) (nextUpdate time.Duration, err error) {
+func (d *databaseMock) UpdateIpDatabase(_ context.Context) (time.Duration, error) {
 	return 0, nil
 }
 

@@ -15,6 +15,8 @@ type configDto struct {
 	BackupTable string    `db:"backup_table"`
 }
 
+var errLoadConfig = errors.New("couldn't load config from database")
+
 func (d *db) loadDatabaseConfig(ctx context.Context) error {
 	dto := &configDto{}
 
@@ -23,7 +25,7 @@ func (d *db) loadDatabaseConfig(ctx context.Context) error {
 		&dto.ActiveTable,
 		&dto.BackupTable,
 	); err != nil {
-		return errors.New("couldn't load config from database")
+		return errLoadConfig
 	}
 
 	d.cfg.LastUpdate = dto.LastUpdate

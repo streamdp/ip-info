@@ -13,6 +13,8 @@ import (
 )
 
 func Test_rateLimiterMW(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		request        *http.Request
@@ -76,6 +78,8 @@ func Test_rateLimiterMW(t *testing.T) {
 }
 
 func Test_contentTypeRestrictionMW(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name               string
 		request            *http.Request

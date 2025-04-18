@@ -12,10 +12,10 @@ import (
 	"github.com/streamdp/ip-info/server"
 )
 
-func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) (err error) {
+func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) error {
 	w.Header().Set(contentTypeHeader, jsonContentType)
 	w.WriteHeader(code)
-	if _, err = w.Write(response.Bytes()); err != nil {
+	if _, err := w.Write(response.Bytes()); err != nil {
 		return fmt.Errorf("failed to write response: %w", err)
 	}
 

@@ -34,5 +34,6 @@ func (c *App) Validate() error {
 	if c.DatabaseUrl == "" {
 		return errEmptyDatabaseUrl
 	}
+
 	return nil
 }

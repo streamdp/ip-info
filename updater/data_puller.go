@@ -34,6 +34,7 @@ func (p *puller) PullUpdates(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			t.Stop()
+
 			return
 		case <-t.C:
 			t.Reset(repeatIntervalOnError)
@@ -46,6 +47,7 @@ func (p *puller) PullUpdates(ctx context.Context) {
 				if !errors.Is(err, database.ErrNoUpdateRequired) {
 					p.l.Printf("ip database update interrupted, retry after %0.1fs",
 						repeatIntervalOnError.Seconds())
+
 					continue
 				}
 			}

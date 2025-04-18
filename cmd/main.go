@@ -33,11 +33,12 @@ func main() {
 	d, errDb := database.Connect(appCfg, l)
 	if errDb != nil {
 		l.Fatalln(errDb)
+
 		return
 	}
 	defer func() {
 		if errClose := d.Close(); errClose != nil {
-			l.Printf("failed to close database: %v", errClose)
+			l.Println(errClose)
 		}
 	}()
 

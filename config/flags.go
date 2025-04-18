@@ -72,14 +72,13 @@ func LoadConfig() (*App, *Redis, *Limiter, *Cache, error) {
 	flag.Parse()
 
 	if showHelp {
-		fmt.Println("ip-info is a microservice for IP location determination")
-		fmt.Println("")
+		fmt.Printf("ip-info is a microservice for IP location determination\n\n")
 		flag.Usage()
 		os.Exit(0)
 	}
 
 	if showVersion {
-		fmt.Println("ip-info version: " + Version)
+		fmt.Printf("ip-info version: %s\n", Version)
 		os.Exit(0)
 	}
 

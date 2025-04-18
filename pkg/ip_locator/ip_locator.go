@@ -24,8 +24,8 @@ type Database interface {
 }
 
 type IpCache interface {
-	Set(*domain.IpInfo) error
-	Get(string) (*domain.IpInfo, error)
+	Set(ipInfo *domain.IpInfo) error
+	Get(ip string) (*domain.IpInfo, error)
 }
 
 type IpLocator struct {
@@ -40,27 +40,32 @@ func New(d Database, ic IpCache) *IpLocator {
 	}
 }
 
-func (l *IpLocator) GetIpInfo(ctx context.Context, ipString string) (ipInfo *domain.IpInfo, err error) {
+func (l *IpLocator) GetIpInfo(ctx context.Context, ipString string) (*domain.IpInfo, error) {
 	ip := net.ParseIP(ipString)
 	if ip == nil {
 		return nil, fmt.Errorf("%w: %s", server.ErrWrongIpAddress, ipString)
 	}
 
 	if l.ic == nil {
-		if ipInfo, err = l.d.IpInfo(ctx, ip); err != nil {
+		ipInfo, err := l.d.IpInfo(ctx, ip)
+		if err != nil {
 			return nil, fmt.Errorf("could not get ip location: %w", err)
 		}
 
 		return ipInfo, nil
 	}
 
-	if ipInfo, err = l.ic.Get(ipString); err != nil {
-		if ipInfo, err = l.d.IpInfo(ctx, ip); err != nil {
-			return nil, fmt.Errorf("could not get ip location: %w", err)
-		}
-		if err = l.ic.Set(ipInfo); err != nil {
-			return nil, fmt.Errorf("cache: %w", err)
-		}
+	if ipInfo, err := l.ic.Get(ipString); err == nil {
+		return ipInfo, nil
+	}
+
+	ipInfo, err := l.d.IpInfo(ctx, ip)
+	if err != nil {
+		return nil, fmt.Errorf("could not get ip location: %w", err)
+	}
+
+	if err = l.ic.Set(ipInfo); err != nil {
+		return nil, fmt.Errorf("ip_cache: %w", err)
 	}
 
 	return ipInfo, nil

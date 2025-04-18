@@ -36,10 +36,14 @@ func Connect(cfg *config.App, l *log.Logger) (*db, error) {
 	}, nil
 }
 
-func (d *db) Close() (err error) {
+func (d *db) Close() error {
 	if d.DB == nil {
-		return
+		return nil
 	}
 
-	return d.DB.Close()
+	if err := d.DB.Close(); err != nil {
+		return fmt.Errorf("failed to close database: %w", err)
+	}
+
+	return nil
 }

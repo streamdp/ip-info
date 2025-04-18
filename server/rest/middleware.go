@@ -16,6 +16,7 @@ func rateLimiterMW(limiter server.Limiter, l *log.Logger, next http.Handler) htt
 			if err = writeJsonResponse(w, getHttpStatus(err), domain.NewResponse(err, nil)); err != nil {
 				l.Println(err)
 			}
+
 			return
 		}
 
@@ -29,6 +30,7 @@ func contentTypeRestrictionMW(l *log.Logger, f http.HandlerFunc, allowedTypes ..
 	return func(w http.ResponseWriter, r *http.Request) {
 		if isAllowedContentType(r.Header.Get(contentTypeHeader), allowedTypes) {
 			f.ServeHTTP(w, r)
+
 			return
 		}
 

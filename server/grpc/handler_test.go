@@ -17,6 +17,8 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+var errCommon = errors.New("some error")
+
 func Test_convertIpInfoDto(t *testing.T) {
 	tests := []struct {
 		name string
@@ -134,7 +136,7 @@ func Test_getGrpcCode(t *testing.T) {
 		},
 		{
 			name: "get codes.Internal",
-			err:  errors.New("some error"),
+			err:  errCommon,
 			want: codes.Internal,
 		},
 	}

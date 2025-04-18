@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -19,14 +18,16 @@ import (
 	"github.com/streamdp/ip-info/server"
 )
 
+var errCommon = errors.New("some_error")
+
 func Test_httpClientIp(t *testing.T) {
-	createRequestWithHeader := func(header string, value string) (r *http.Request) {
-		r = &http.Request{
+	createRequestWithHeader := func(header string, value string) *http.Request {
+		r := &http.Request{
 			Header: http.Header{},
 		}
 		r.Header.Add(header, value)
 
-		return
+		return r
 	}
 
 	tests := []struct {
@@ -94,7 +95,7 @@ func Test_getHttpStatus(t *testing.T) {
 		},
 		{
 			name: "get http.StatusInternalServerError",
-			err:  errors.New("some_error"),
+			err:  errCommon,
 			want: http.StatusInternalServerError,
 		},
 	}
@@ -135,6 +136,8 @@ func TestServer_healthz(t *testing.T) {
 }
 
 func TestServer_ipInfo(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		ip             string
@@ -184,7 +187,7 @@ func TestServer_ipInfo(t *testing.T) {
 				r = httptest.NewRequest(http.MethodGet, "/client-ip", nil)
 				r.Header.Set(ip_locator.XRealIp, tt.ip)
 			} else {
-				r = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/ip-info?ip=%s", tt.ip), nil)
+				r = httptest.NewRequest(http.MethodGet, "/ip-info?ip="+tt.ip, nil)
 			}
 
 			handler(w, r)
@@ -218,6 +221,7 @@ func TestServer_ipInfo(t *testing.T) {
 				content, ok := resp.Content.(map[string]interface{})
 				if !ok {
 					t.Fatalf("failed to get response content")
+
 					return
 				}
 
@@ -238,5 +242,6 @@ func (ml *mockLocator) GetIpInfo(_ context.Context, _ string) (*domain.IpInfo, e
 	if ml.err != nil {
 		return nil, ml.err
 	}
+
 	return ml.ipInfo, nil
 }
