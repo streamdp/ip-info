@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	errEmptyLimiter   = errors.New("limiter provider field shouldn't be empty")
-	errWrongLimiter   = errors.New("wrong limiter provider name")
+	errEmptyLimiter   = errors.New("limiter field shouldn't be empty")
+	errWrongLimiter   = errors.New("wrong limiter name")
 	errWrongRateLimit = errors.New("rate limit should be positive number")
 	errRateLimitTTL   = errors.New("TTL should be positive number")
 )
 
 type Limiter struct {
-	Provider  string
+	Limiter   string
 	RateLimit int
 	TTL       int
 }
@@ -22,10 +22,10 @@ type Limiter struct {
 var limiters = []string{"golimiter", "redis_rate"}
 
 func (l *Limiter) Validate() error {
-	if l.Provider == "" {
+	if l.Limiter == "" {
 		return fmt.Errorf("rate_limiter: %w", errEmptyLimiter)
 	}
-	if !slices.Contains(limiters, l.Provider) {
+	if !slices.Contains(limiters, l.Limiter) {
 		return fmt.Errorf("rate_limiter: %w", errWrongLimiter)
 	}
 	if l.RateLimit <= 0 {
@@ -34,5 +34,6 @@ func (l *Limiter) Validate() error {
 	if l.TTL <= 0 {
 		return fmt.Errorf("rate_limiter: %w", errRateLimitTTL)
 	}
+
 	return nil
 }

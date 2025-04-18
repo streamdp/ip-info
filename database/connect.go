@@ -1,10 +1,9 @@
 package database
 
 import (
-	"context"
 	"database/sql"
+	"fmt"
 	"log"
-	"net"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -12,30 +11,21 @@ import (
 	"github.com/streamdp/ip-info/domain"
 )
 
-type Database interface {
-	IpInfo(ip net.IP) (*domain.IpInfo, error)
-	UpdateIpDatabase() (nextUpdate time.Duration, err error)
-
-	Close() error
-}
-
 type db struct {
 	*sql.DB
-	ctx context.Context
 
 	l   *log.Logger
 	cfg *domain.DatabaseConfig
 }
 
-func Connect(ctx context.Context, cfg *config.App, l *log.Logger) (d Database, err error) {
-	sqlDb := &sql.DB{}
-	if sqlDb, err = sql.Open("postgres", cfg.DatabaseUrl); err != nil {
-		return
+func Connect(cfg *config.App, l *log.Logger) (*db, error) {
+	sqlDb, err := sql.Open("postgres", cfg.DatabaseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
 	return &db{
-		DB:  sqlDb,
-		ctx: ctx,
+		DB: sqlDb,
 
 		l: l,
 		cfg: &domain.DatabaseConfig{
@@ -46,9 +36,14 @@ func Connect(ctx context.Context, cfg *config.App, l *log.Logger) (d Database, e
 	}, nil
 }
 
-func (d *db) Close() (err error) {
+func (d *db) Close() error {
 	if d.DB == nil {
-		return
+		return nil
 	}
-	return d.DB.Close()
+
+	if err := d.DB.Close(); err != nil {
+		return fmt.Errorf("failed to close database: %w", err)
+	}
+
+	return nil
 }

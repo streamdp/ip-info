@@ -33,6 +33,7 @@ func Test_nextUpdateInterval(t *testing.T) {
 					if b {
 						return "positive"
 					}
+
 					return "negative"
 				}(tt.futureResult))
 			}

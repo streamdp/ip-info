@@ -1,6 +1,7 @@
-package ip_locator
+package iplocator
 
 import (
+	"context"
 	"errors"
 	"net"
 	"reflect"
@@ -11,6 +12,8 @@ import (
 	"github.com/streamdp/ip-info/domain"
 	"github.com/streamdp/ip-info/server"
 )
+
+var errCommon = errors.New("redis: nil")
 
 func TestLocateIp(t *testing.T) {
 	tests := []struct {
@@ -85,7 +88,7 @@ func TestLocateIp(t *testing.T) {
 					ipInfo: nil,
 				},
 				&cacheMock{
-					getErr: errors.New("redis: nil"),
+					getErr: errCommon,
 				},
 			),
 			ipString:   "82.28.25.43",
@@ -110,8 +113,8 @@ func TestLocateIp(t *testing.T) {
 			locator: New(
 				&databaseMock{},
 				&cacheMock{
-					getErr: errors.New("redis: nil"),
-					setErr: errors.New("cache: redis: nil"),
+					getErr: errCommon,
+					setErr: errCommon,
 				},
 			),
 			ipString:   "82.28.25.43",
@@ -128,9 +131,10 @@ func TestLocateIp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotIpInfo, err := tt.locator.GetIpInfo(tt.ipString)
+			gotIpInfo, err := tt.locator.GetIpInfo(context.Background(), tt.ipString)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetIpInfo() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(gotIpInfo, tt.wantIpInfo) {
@@ -145,11 +149,11 @@ type databaseMock struct {
 	ipInfo *domain.IpInfo
 }
 
-func (d *databaseMock) IpInfo(_ net.IP) (*domain.IpInfo, error) {
+func (d *databaseMock) IpInfo(_ context.Context, _ net.IP) (*domain.IpInfo, error) {
 	return d.ipInfo, d.err
 }
 
-func (d *databaseMock) UpdateIpDatabase() (nextUpdate time.Duration, err error) {
+func (d *databaseMock) UpdateIpDatabase(_ context.Context) (time.Duration, error) {
 	return 0, nil
 }
 
@@ -163,10 +167,10 @@ type cacheMock struct {
 	ipInfo *domain.IpInfo
 }
 
-func (c *cacheMock) Set(_ *domain.IpInfo) error {
+func (c *cacheMock) Set(context.Context, *domain.IpInfo) error {
 	return c.setErr
 }
 
-func (c *cacheMock) Get(string) (*domain.IpInfo, error) {
+func (c *cacheMock) Get(context.Context, string) (*domain.IpInfo, error) {
 	return c.ipInfo, c.getErr
 }

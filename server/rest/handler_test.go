@@ -1,9 +1,9 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -14,18 +14,20 @@ import (
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/iplocator"
 	"github.com/streamdp/ip-info/server"
 )
 
+var errCommon = errors.New("some_error")
+
 func Test_httpClientIp(t *testing.T) {
-	createRequestWithHeader := func(header string, value string) (r *http.Request) {
-		r = &http.Request{
+	createRequestWithHeader := func(header string, value string) *http.Request {
+		r := &http.Request{
 			Header: http.Header{},
 		}
 		r.Header.Add(header, value)
 
-		return
+		return r
 	}
 
 	tests := []struct {
@@ -35,17 +37,17 @@ func Test_httpClientIp(t *testing.T) {
 	}{
 		{
 			name:    "get ip from cf-connecting-ip header",
-			request: createRequestWithHeader(ip_locator.CfConnectingIp, "127.0.0.1"),
+			request: createRequestWithHeader(iplocator.CfConnectingIp, "127.0.0.1"),
 			want:    "127.0.0.1",
 		},
 		{
 			name:    "get ip from x-forwarded-for header",
-			request: createRequestWithHeader(ip_locator.XForwardedFor, "82.12.32.1"),
+			request: createRequestWithHeader(iplocator.XForwardedFor, "82.12.32.1"),
 			want:    "82.12.32.1",
 		},
 		{
 			name:    "get ip from x-real-ip header",
-			request: createRequestWithHeader(ip_locator.XRealIp, "8.8.8.8"),
+			request: createRequestWithHeader(iplocator.XRealIp, "8.8.8.8"),
 			want:    "8.8.8.8",
 		},
 		{
@@ -93,7 +95,7 @@ func Test_getHttpStatus(t *testing.T) {
 		},
 		{
 			name: "get http.StatusInternalServerError",
-			err:  errors.New("some_error"),
+			err:  errCommon,
 			want: http.StatusInternalServerError,
 		},
 	}
@@ -134,6 +136,8 @@ func TestServer_healthz(t *testing.T) {
 }
 
 func TestServer_ipInfo(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		ip             string
@@ -181,9 +185,9 @@ func TestServer_ipInfo(t *testing.T) {
 			var r *http.Request
 			if tt.useClientIp {
 				r = httptest.NewRequest(http.MethodGet, "/client-ip", nil)
-				r.Header.Set(ip_locator.XRealIp, tt.ip)
+				r.Header.Set(iplocator.XRealIp, tt.ip)
 			} else {
-				r = httptest.NewRequest(http.MethodGet, fmt.Sprintf("/ip-info?ip=%s", tt.ip), nil)
+				r = httptest.NewRequest(http.MethodGet, "/ip-info?ip="+tt.ip, nil)
 			}
 
 			handler(w, r)
@@ -217,6 +221,7 @@ func TestServer_ipInfo(t *testing.T) {
 				content, ok := resp.Content.(map[string]interface{})
 				if !ok {
 					t.Fatalf("failed to get response content")
+
 					return
 				}
 
@@ -233,9 +238,10 @@ type mockLocator struct {
 	err    error
 }
 
-func (ml *mockLocator) GetIpInfo(_ string) (*domain.IpInfo, error) {
+func (ml *mockLocator) GetIpInfo(_ context.Context, _ string) (*domain.IpInfo, error) {
 	if ml.err != nil {
 		return nil, ml.err
 	}
+
 	return ml.ipInfo, nil
 }

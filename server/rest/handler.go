@@ -2,20 +2,24 @@ package rest
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
-	"github.com/streamdp/ip-info/pkg/ip_locator"
+	"github.com/streamdp/ip-info/pkg/iplocator"
 	"github.com/streamdp/ip-info/server"
 )
 
-func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) (err error) {
+func writeJsonResponse(w http.ResponseWriter, code int, response *domain.Response) error {
 	w.Header().Set(contentTypeHeader, jsonContentType)
 	w.WriteHeader(code)
-	_, err = w.Write(response.Bytes())
-	return err
+	if _, err := w.Write(response.Bytes()); err != nil {
+		return fmt.Errorf("failed to write response: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Request) {
@@ -25,7 +29,7 @@ func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Reques
 			ipString = httpClientIp(r)
 		}
 
-		ipInfo, err := s.locator.GetIpInfo(ipString)
+		ipInfo, err := s.locator.GetIpInfo(r.Context(), ipString)
 		if err != nil {
 			s.l.Println(err)
 		}
@@ -66,13 +70,13 @@ func getHttpStatus(err error) int {
 }
 
 func httpClientIp(r *http.Request) string {
-	if ip := r.Header.Get(ip_locator.CfConnectingIp); ip != "" {
+	if ip := r.Header.Get(iplocator.CfConnectingIp); ip != "" {
 		return ip
 	}
-	if ip := r.Header.Get(ip_locator.XForwardedFor); ip != "" {
+	if ip := r.Header.Get(iplocator.XForwardedFor); ip != "" {
 		return ip
 	}
-	if ip := r.Header.Get(ip_locator.XRealIp); ip != "" {
+	if ip := r.Header.Get(iplocator.XRealIp); ip != "" {
 		return ip
 	}
 

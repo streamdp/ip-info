@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 
 	"github.com/streamdp/ip-info/domain"
@@ -12,9 +13,9 @@ var (
 )
 
 type Locator interface {
-	GetIpInfo(ipString string) (ipInfo *domain.IpInfo, err error)
+	GetIpInfo(ctx context.Context, ipString string) (ipInfo *domain.IpInfo, err error)
 }
 
 type Limiter interface {
-	Limit(ip string) error
+	Limit(ctx context.Context, ip string) error
 }

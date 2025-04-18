@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -16,6 +17,8 @@ const downloadUrl = "https://download.db-ip.com/free/dbip-city-lite-%d-%s.csv.gz
 var (
 	ErrNoUpdateRequired = errors.New("no update required")
 	ErrNoIpAddress      = errors.New("no ip address in the database")
+	errUpdateIpDatabase = errors.New("failed to update ip database")
+	errDatabaseError    = errors.New("database error")
 )
 
 type ipToCityDto struct {
@@ -29,42 +32,55 @@ type ipToCityDto struct {
 	Longitude float64 `db:"longitude"`
 }
 
-func (d *db) importCsv(url string) (err error) {
+func (d *db) importCsv(ctx context.Context, url string) error {
 	d.l.Println("import ip database updates")
-	_, err = d.DB.ExecContext(d.ctx,
+
+	_, err := d.ExecContext(ctx,
 		fmt.Sprintf("copy %s from program 'wget -qO- %s|gzip -d' csv null 'null' delimiter ',';",
 			d.cfg.BackupTable,
 			url,
-		),
-	)
-	return err
+		))
+	if err != nil {
+		return fmt.Errorf("failed to import csv: %w", err)
+	}
+
+	return nil
 }
 
-func (d *db) truncate() (err error) {
-	d.l.Println(fmt.Sprintf("truncate %s table before importing update", d.cfg.BackupTable))
-	_, err = d.DB.ExecContext(d.ctx, fmt.Sprintf("truncate table %s;", d.cfg.BackupTable))
-	return err
+func (d *db) truncate(ctx context.Context) error {
+	d.l.Printf("truncate %s table before importing update", d.cfg.BackupTable)
+
+	if _, err := d.ExecContext(ctx, fmt.Sprintf("truncate table %s;", d.cfg.BackupTable)); err != nil {
+		return fmt.Errorf("failed to truncate table: %w", err)
+	}
+
+	return nil
 }
 
-func (d *db) createIndex() (err error) {
-	d.l.Println(
-		fmt.Sprintf("creating %s_ip_start_gist_idx index on %s table", d.cfg.BackupTable, d.cfg.BackupTable),
-	)
-	_, err = d.DB.ExecContext(d.ctx,
+func (d *db) createIndex(ctx context.Context) error {
+	d.l.Printf("creating %s_ip_start_gist_idx index on %s table", d.cfg.BackupTable, d.cfg.BackupTable)
+
+	_, err := d.ExecContext(ctx,
 		fmt.Sprintf("create index if not exists %s_ip_start_gist_idx on %s using gist (ip_start inet_ops);",
 			d.cfg.BackupTable,
 			d.cfg.BackupTable,
-		),
-	)
-	return err
+		))
+	if err != nil {
+		return fmt.Errorf("failed to create index: %w", err)
+	}
+
+	return nil
 }
 
-func (d *db) dropIndex() (err error) {
-	d.l.Println(fmt.Sprintf("droping %s_ip_start_gist_idx index", d.cfg.BackupTable))
-	_, err = d.DB.ExecContext(d.ctx,
-		fmt.Sprintf("drop index if exists %s_ip_start_gist_idx;", d.cfg.BackupTable),
-	)
-	return err
+func (d *db) dropIndex(ctx context.Context) error {
+	d.l.Printf("droping %s_ip_start_gist_idx index", d.cfg.BackupTable)
+
+	_, err := d.ExecContext(ctx, fmt.Sprintf("drop index if exists %s_ip_start_gist_idx;", d.cfg.BackupTable))
+	if err != nil {
+		return fmt.Errorf("failed to drop index: %w", err)
+	}
+
+	return nil
 }
 
 func (d *db) switchTables() {
@@ -72,11 +88,10 @@ func (d *db) switchTables() {
 	d.cfg.ActiveTable, d.cfg.BackupTable = d.cfg.BackupTable, d.cfg.ActiveTable
 }
 
-func (d *db) IpInfo(ip net.IP) (*domain.IpInfo, error) {
+func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 	dto := &ipToCityDto{}
 
-	if err := d.DB.QueryRowContext(
-		d.ctx,
+	if err := d.QueryRowContext(ctx,
 		fmt.Sprintf("select * from %s where '%s' >= ip_start order by ip_start desc limit 1;",
 			d.cfg.ActiveTable,
 			ip.String(),
@@ -94,7 +109,8 @@ func (d *db) IpInfo(ip net.IP) (*domain.IpInfo, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoIpAddress
 		}
-		return nil, err
+
+		return nil, errDatabaseError
 	}
 
 	return &domain.IpInfo{
@@ -108,39 +124,39 @@ func (d *db) IpInfo(ip net.IP) (*domain.IpInfo, error) {
 	}, nil
 }
 
-func (d *db) UpdateIpDatabase() (nextUpdate time.Duration, err error) {
-	if err = d.loadDatabaseConfig(); err != nil {
-		return 0, err
+func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
+	if err := d.loadDatabaseConfig(ctx); err != nil {
+		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
 	if d.cfg.LastUpdate.Month() == time.Now().Month() {
 		return nextUpdateInterval(d.cfg.LastUpdate), ErrNoUpdateRequired
 	}
 
-	if err = d.acquireLock(); err != nil {
-		return 0, fmt.Errorf("failed to acquire lock: %w ", err)
+	if err := d.acquireLock(ctx); err != nil {
+		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
 	defer func() {
-		if errReleaseLock := d.releaseLock(); errReleaseLock != nil {
-			d.l.Println(fmt.Errorf("failed to release lock: %w", errReleaseLock))
+		if errReleaseLock := d.releaseLock(ctx); errReleaseLock != nil {
+			d.l.Printf("update ip database: %v", errReleaseLock)
 		}
 	}()
 
-	if err = d.truncate(); err != nil {
-		return 0, fmt.Errorf("failed to truncate table: %w", err)
+	if err := d.truncate(ctx); err != nil {
+		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
-	if err = d.dropIndex(); err != nil {
-		return 0, fmt.Errorf("failed to drop index: %w", err)
+	if err := d.dropIndex(ctx); err != nil {
+		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
-	if err = d.importCsv(buildDownloadUrl(time.Now())); err != nil {
-		return 0, fmt.Errorf("failed to import database: %w", err)
+	if err := d.importCsv(ctx, buildDownloadUrl(time.Now())); err != nil {
+		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
-	if err = d.createIndex(); err != nil {
-		return 0, fmt.Errorf("failed to create index: %w", err)
+	if err := d.createIndex(ctx); err != nil {
+		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
 	d.switchTables()
 
-	if err = d.updateDatabaseConfig(); err != nil {
-		d.l.Println(fmt.Errorf("error updating config: %w", err))
+	if err := d.updateDatabaseConfig(ctx); err != nil {
+		d.l.Printf("update ip database: %v", err)
 	}
 
 	return nextUpdateInterval(d.cfg.LastUpdate), nil
@@ -151,7 +167,7 @@ func buildDownloadUrl(t time.Time) string {
 
 	monthStr := strconv.Itoa(int(month))
 	if month < 10 {
-		monthStr = fmt.Sprintf("0%s", monthStr)
+		monthStr = "0" + monthStr
 	}
 
 	return fmt.Sprintf(downloadUrl, year, monthStr)
@@ -159,5 +175,6 @@ func buildDownloadUrl(t time.Time) string {
 
 func nextUpdateInterval(t time.Time) time.Duration {
 	year, month, _ := t.Date()
+
 	return time.Date(year, month+1, 2, 0, 0, -1, 0, time.UTC).Sub(time.Now().UTC())
 }

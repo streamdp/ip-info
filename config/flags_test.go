@@ -24,7 +24,7 @@ func TestLoadConfig(t *testing.T) {
 				"IP_INFO_DATABASE_URL":   "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
 				"IP_INFO_RATE_LIMIT":     "10",
 				"IP_INFO_RATE_LIMIT_TTL": "65",
-				"IP_INFO_CACHE_PROVIDER": "redis",
+				"IP_INFO_CACHER":         "redis",
 				"IP_INFO_CACHE_TTL":      "3600",
 				"IP_INFO_ENABLE_LIMITER": "true",
 			},
@@ -48,13 +48,13 @@ func TestLoadConfig(t *testing.T) {
 				Db:       redisDefaultDb,
 			},
 			wantLimiter: &Limiter{
-				Provider:  "golimiter",
+				Limiter:   "golimiter",
 				RateLimit: 10,
 				TTL:       65,
 			},
 			wantCache: &Cache{
-				Provider: "redis",
-				TTL:      3600,
+				Cacher: "redis",
+				TTL:    3600,
 			},
 			wantErr: nil,
 		},
@@ -109,6 +109,7 @@ func TestLoadConfig(t *testing.T) {
 			gotApp, gotRedis, gotLimiter, gotCache, err := LoadConfig()
 			if err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("LoadConfig() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(gotApp, tt.wantApp) {

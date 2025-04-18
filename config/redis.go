@@ -32,12 +32,18 @@ func (r *Redis) Validate() error {
 	if r.Db < 0 || r.Db > 15 {
 		return fmt.Errorf("redis: %w", errRedisDb)
 	}
+
 	return nil
 }
 
 func (r *Redis) Options() (*redis.Options, error) {
 	if redisUrl := os.Getenv("REDIS_URL"); redisUrl != "" {
-		return redis.ParseURL(redisUrl)
+		options, err := redis.ParseURL(redisUrl)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse redis url: %w", err)
+		}
+
+		return options, nil
 	}
 
 	if r == nil {

@@ -26,15 +26,6 @@ type Server struct {
 	l       *log.Logger
 }
 
-func (s *Server) initRouter() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /ip-info", contentTypeRestrictionMW(s.l, s.ipInfo(false), jsonContentType))
-	mux.HandleFunc("GET /client-ip", contentTypeRestrictionMW(s.l, s.ipInfo(true), jsonContentType))
-	mux.HandleFunc("GET /healthz", contentTypeRestrictionMW(s.l, s.healthz(), textPlainContentType))
-
-	return mux
-}
-
 func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cfg *config.App) *Server {
 	return &Server{
 		locator: locator,
@@ -62,5 +53,18 @@ func (s *Server) Run() {
 }
 
 func (s *Server) Close(ctx context.Context) error {
-	return s.srv.Shutdown(ctx)
+	if err := s.srv.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to close server: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Server) initRouter() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /ip-info", contentTypeRestrictionMW(s.l, s.ipInfo(false), jsonContentType))
+	mux.HandleFunc("GET /client-ip", contentTypeRestrictionMW(s.l, s.ipInfo(true), jsonContentType))
+	mux.HandleFunc("GET /healthz", contentTypeRestrictionMW(s.l, s.healthz(), textPlainContentType))
+
+	return mux
 }

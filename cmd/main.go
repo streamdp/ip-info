@@ -6,18 +6,20 @@ import (
 	"os"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/streamdp/ip-info/config"
 	"github.com/streamdp/ip-info/database"
-	"github.com/streamdp/ip-info/pkg/ip_cache"
-	"github.com/streamdp/ip-info/pkg/ip_locator"
-	"github.com/streamdp/ip-info/pkg/rate_limiter"
-	"github.com/streamdp/ip-info/pkg/redis_client"
-	"github.com/streamdp/ip-info/pkg/redis_rate"
+	"github.com/streamdp/ip-info/pkg/golimiter"
+	"github.com/streamdp/ip-info/pkg/ipcache"
+	"github.com/streamdp/ip-info/pkg/iplocator"
+	"github.com/streamdp/ip-info/pkg/microcache"
+	"github.com/streamdp/ip-info/pkg/rediscache"
+	"github.com/streamdp/ip-info/pkg/redisclient"
+	"github.com/streamdp/ip-info/pkg/redislimiter"
 	"github.com/streamdp/ip-info/server"
 	"github.com/streamdp/ip-info/server/grpc"
 	"github.com/streamdp/ip-info/server/rest"
 	"github.com/streamdp/ip-info/updater"
-	"github.com/streamdp/microcache"
 )
 
 func main() {
@@ -28,68 +30,74 @@ func main() {
 		l.Fatal(err)
 	}
 
+	l.Printf("Run mode:\n")
+	l.Printf("\tLimiter enabled=%v\n", appCfg.EnableLimiter)
+	l.Printf("\tLimiter=%v\n", limiterCfg.Limiter)
+	l.Printf("\tCaching enabled=%v\n", !appCfg.DisableCache)
+	l.Printf("\tCacher=%v\n", cacheCfg.Cacher)
+
 	ctx := context.Background()
 
-	d, errDb := database.Connect(ctx, appCfg, l)
+	d, errDb := database.Connect(appCfg, l)
 	if errDb != nil {
 		l.Fatalln(errDb)
+
 		return
 	}
-
-	defer func(d database.Database) {
+	defer func() {
 		if errClose := d.Close(); errClose != nil {
 			l.Println(errClose)
 		}
-	}(d)
+	}()
 
-	go updater.New(ctx, d, l).PullUpdates()
+	go updater.New(d, l).PullUpdates(ctx)
 
-	var redisCache *redis_client.Client
-	if appCfg.EnableLimiter && limiterCfg.Provider == "redis_rate" ||
-		!appCfg.DisableCache && cacheCfg.Provider == "redis" {
-		if redisCache, err = redis_client.New(ctx, redisCfg); err != nil {
+	var redisClient *redis.Client
+	if appCfg.EnableLimiter && limiterCfg.Limiter == "redis_rate" ||
+		!appCfg.DisableCache && cacheCfg.Cacher == "redis" {
+		if redisClient, err = redisclient.New(ctx, redisCfg); err != nil {
 			l.Fatal(err)
 		}
-		defer func(c *redis_client.Client) {
+		defer func(c *redis.Client) {
 			if errClose := c.Close(); errClose != nil {
 				l.Println(errClose)
 			}
-		}(redisCache)
+		}(redisClient)
 	}
 
 	var limiter server.Limiter
 	if appCfg.EnableLimiter {
-		switch limiterCfg.Provider {
+		switch limiterCfg.Limiter {
 		case "redis_rate":
-			if limiter, err = redis_rate.New(ctx, redisCache.Client, limiterCfg); err != nil {
+			if limiter, err = redislimiter.New(redisClient, limiterCfg); err != nil {
 				l.Fatal(err)
 			}
 		case "golimiter":
 			fallthrough
 		default:
-			limiter = rate_limiter.New(ctx, limiterCfg)
+			limiter = golimiter.New(ctx, limiterCfg)
 		}
 	}
 
 	var (
-		cacheProvider ip_cache.CacheProvider
-		ipInfoCache   ip_locator.IpCache
+		cacher      ipcache.Cacher
+		ipInfoCache iplocator.IpCache
 	)
 	if !appCfg.DisableCache {
-		switch cacheCfg.Provider {
+		switch cacheCfg.Cacher {
 		case "redis":
-			cacheProvider = redisCache
+			cacher = rediscache.New(redisClient)
 		case "microcache":
 			fallthrough
 		default:
-			cacheProvider = microcache.New(ctx, 60000)
+			cacher = microcache.New(ctx)
 		}
-		if ipInfoCache, err = ip_cache.New(cacheProvider, cacheCfg); err != nil {
+		if ipInfoCache, err = ipcache.New(cacher, cacheCfg); err != nil {
 			l.Fatal(err)
 		}
 	}
 
-	ipLocator := ip_locator.New(d, ipInfoCache)
+	ipLocator := iplocator.New(d, ipInfoCache)
 
 	httpSrv := rest.NewServer(ipLocator, l, limiter, appCfg)
 	defer func(srv *rest.Server) {

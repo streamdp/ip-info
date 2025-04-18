@@ -138,6 +138,7 @@ func TestRedis_Options(t *testing.T) {
 			got, err := tt.l.Options()
 			if err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("Options() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
