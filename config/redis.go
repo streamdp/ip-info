@@ -40,7 +40,7 @@ func (r *Redis) Options() (*redis.Options, error) {
 	if redisUrl := os.Getenv("REDIS_URL"); redisUrl != "" {
 		options, err := redis.ParseURL(redisUrl)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse redur url: %w", err)
+			return nil, fmt.Errorf("failed to parse redis url: %w", err)
 		}
 
 		return options, nil
