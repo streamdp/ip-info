@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
@@ -194,6 +195,6 @@ type mockLimiter struct {
 	err error
 }
 
-func (ml *mockLimiter) Limit(_ string) error {
+func (ml *mockLimiter) Limit(_ context.Context, _ string) error {
 	return ml.err
 }

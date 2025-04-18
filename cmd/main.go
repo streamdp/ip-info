@@ -61,7 +61,7 @@ func main() {
 	if appCfg.EnableLimiter {
 		switch limiterCfg.Provider {
 		case "redis_rate":
-			if limiter, err = redis_rate.New(ctx, redisCache.Client, limiterCfg); err != nil {
+			if limiter, err = redis_rate.New(redisCache.Client, limiterCfg); err != nil {
 				l.Fatal(err)
 			}
 		case "golimiter":

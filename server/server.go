@@ -17,5 +17,5 @@ type Locator interface {
 }
 
 type Limiter interface {
-	Limit(ip string) error
+	Limit(ctx context.Context, ip string) error
 }

@@ -12,7 +12,7 @@ import (
 
 func rateLimiterMW(limiter server.Limiter, l *log.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := limiter.Limit(httpClientIp(r)); err != nil {
+		if err := limiter.Limit(r.Context(), httpClientIp(r)); err != nil {
 			if err = writeJsonResponse(w, getHttpStatus(err), domain.NewResponse(err, nil)); err != nil {
 				l.Println(err)
 			}

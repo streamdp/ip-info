@@ -3,7 +3,6 @@ package redis_rate
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/go-redis/redis_rate/v10"
 	"github.com/redis/go-redis/v9"
@@ -11,10 +10,7 @@ import (
 	"github.com/streamdp/ip-info/server"
 )
 
-const limiterReadTimeout = time.Second
-
 type limiter struct {
-	ctx    context.Context
 	client *redis.Client
 
 	cfg *config.Limiter
@@ -22,10 +18,9 @@ type limiter struct {
 	limiter *redis_rate.Limiter
 }
 
-func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (*limiter, error) {
+func New(client *redis.Client, cfg *config.Limiter) (*limiter, error) {
 	return &limiter{
 		client: client,
-		ctx:    ctx,
 
 		cfg: cfg,
 
@@ -33,10 +28,7 @@ func New(ctx context.Context, client *redis.Client, cfg *config.Limiter) (*limit
 	}, nil
 }
 
-func (l *limiter) Limit(ip string) error {
-	ctx, cancel := context.WithTimeout(l.ctx, limiterReadTimeout)
-	defer cancel()
-
+func (l *limiter) Limit(ctx context.Context, ip string) error {
 	res, err := l.limiter.Allow(ctx, ip, redis_rate.PerSecond(l.cfg.RateLimit))
 	if err != nil {
 		return fmt.Errorf("rate_limiter: %w", err)
