@@ -37,7 +37,7 @@ func LoadConfig() (*App, error) {
 	flag.StringVar(&appCfg.Limiter.limiter, "limiter", limiterDefaultLimiter, "what use to limit "+
 		"queries: redis_rate, golimiter")
 	flag.IntVar(&appCfg.Limiter.rateLimit, "rate-limit", limiterDefaultRateLimit, "rate limit, rps per client")
-	flag.IntVar(&appCfg.Limiter.ttl, "rate-limit-ttl", limiterDefaultTTL,
+	flag.IntVar(&appCfg.Limiter.ttl, "rate-limit-ttl", limiterDefaultTtl,
 		"rate limit entries ttl in seconds")
 
 	flag.BoolVar(&appCfg.Cache.disabled, "disable-cache", false, "disable cache")

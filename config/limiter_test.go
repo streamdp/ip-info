@@ -46,7 +46,7 @@ func TestLimiter_Validate(t *testing.T) {
 				rateLimit: 2,
 				ttl:       0,
 			},
-			wantErr: errRateLimitTTL,
+			wantErr: errRateLimitTtl,
 		},
 	}
 	for _, tt := range tests {

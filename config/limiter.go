@@ -13,14 +13,14 @@ import (
 const (
 	limiterDefaultLimiter   = "golimiter"
 	limiterDefaultRateLimit = 10
-	limiterDefaultTTL       = 60
+	limiterDefaultTtl       = 60
 )
 
 var (
 	errEmptyLimiter   = errors.New("limiter field shouldn't be empty")
 	errWrongLimiter   = errors.New("wrong limiter name")
 	errWrongRateLimit = errors.New("rate limit should be positive number")
-	errRateLimitTTL   = errors.New("ttl should be positive number")
+	errRateLimitTtl   = errors.New("ttl should be positive number")
 )
 
 type Limiter struct {
@@ -36,7 +36,7 @@ func newLimiterConfig() *Limiter {
 	return &Limiter{
 		limiter:   limiterDefaultLimiter,
 		rateLimit: limiterDefaultRateLimit,
-		ttl:       limiterDefaultTTL,
+		ttl:       limiterDefaultTtl,
 		enabled:   false,
 	}
 }
@@ -89,7 +89,7 @@ func (l *Limiter) validate() error {
 		return fmt.Errorf("rate_limiter: %w", errWrongRateLimit)
 	}
 	if l.ttl <= 0 {
-		return fmt.Errorf("rate_limiter: %w", errRateLimitTTL)
+		return fmt.Errorf("rate_limiter: %w", errRateLimitTtl)
 	}
 
 	return nil
