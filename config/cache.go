@@ -12,7 +12,7 @@ import (
 
 const (
 	cacheDefaultCacher = "microcache"
-	cacheDefaultTTL    = 3600
+	cacheDefaultTtl    = 3600
 )
 
 var (
@@ -31,7 +31,7 @@ var caches = []string{"microcache", "redis"}
 func newCacheConfig() *Cache {
 	return &Cache{
 		cacher:   cacheDefaultCacher,
-		ttl:      cacheDefaultTTL,
+		ttl:      cacheDefaultTtl,
 		disabled: false,
 	}
 }

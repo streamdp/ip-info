@@ -43,7 +43,7 @@ func LoadConfig() (*App, error) {
 	flag.BoolVar(&appCfg.Cache.disabled, "disable-cache", false, "disable cache")
 	flag.StringVar(&appCfg.Cache.cacher, "cacher", cacheDefaultCacher, "where to store "+
 		"cache entries: redis, microcache")
-	flag.IntVar(&appCfg.Cache.ttl, "cache-ttl", cacheDefaultTTL, "cache ttl in seconds")
+	flag.IntVar(&appCfg.Cache.ttl, "cache-ttl", cacheDefaultTtl, "cache ttl in seconds")
 
 	flag.Parse()
 

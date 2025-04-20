@@ -46,7 +46,7 @@ func TestLoadConfig(t *testing.T) {
 				},
 				Cache: &Cache{
 					cacher:   "redis",
-					ttl:      cacheDefaultTTL,
+					ttl:      cacheDefaultTtl,
 					disabled: false,
 				},
 				Redis: &Redis{
