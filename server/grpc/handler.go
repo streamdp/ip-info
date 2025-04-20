@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net"
 	"strings"
-	"time"
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
@@ -20,7 +19,7 @@ import (
 )
 
 func (s *Server) GetIpInfo(ctx context.Context, in *v1.Ip) (*v1.Response, error) {
-	_, cancel := context.WithTimeout(ctx, time.Duration(s.cfg.GrpcReadTimeout)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Grpc.ReadTimeout())
 	defer cancel()
 
 	response, err := s.locator.GetIpInfo(ctx, in.GetIp())
@@ -34,7 +33,7 @@ func (s *Server) GetIpInfo(ctx context.Context, in *v1.Ip) (*v1.Response, error)
 }
 
 func (s *Server) GetClientIp(ctx context.Context, _ *emptypb.Empty) (*v1.Response, error) {
-	_, cancel := context.WithTimeout(ctx, time.Duration(s.cfg.GrpcReadTimeout)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, s.cfg.Grpc.ReadTimeout())
 	defer cancel()
 
 	response, err := s.locator.GetIpInfo(ctx, grpcClientIp(ctx))
@@ -67,13 +66,14 @@ func convertIpInfoDto(dto *domain.IpInfo) *v1.Response {
 
 func grpcClientIp(ctx context.Context) string {
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if ipArr := md.Get(iplocator.CfConnectingIp); len(ipArr) != 0 && ipArr[0] != "" {
+		if ipArr := md.Get(iplocator.XRealIp); len(ipArr) != 0 && ipArr[0] != "" {
 			return ipArr[0]
 		}
+
 		if ipArr := md.Get(iplocator.XForwardedFor); len(ipArr) != 0 && ipArr[0] != "" {
 			return ipArr[0]
 		}
-		if ipArr := md.Get(iplocator.XRealIp); len(ipArr) != 0 && ipArr[0] != "" {
+		if ipArr := md.Get(iplocator.CfConnectingIp); len(ipArr) != 0 && ipArr[0] != "" {
 			return ipArr[0]
 		}
 	}

@@ -2,37 +2,68 @@ package config
 
 import (
 	"errors"
-	"fmt"
+	"os"
 )
 
 var (
-	errWrongNetworkPort = errors.New("port must be between 0 and 65535")
-	errEmptyDatabaseUrl = errors.New("database url cannot be blank")
+	errEmptyDatabaseUrl    = errors.New("database url cannot be blank")
+	errEmptyDatabaseUrlEnv = errors.New("IP_INFO_DATABASE_URL environment variable not set")
 )
 
 type App struct {
-	HttpPort              int
-	GrpcPort              int
-	GrpcUseReflection     bool
-	DatabaseUrl           string
-	GrpcReadTimeout       int
-	HttpReadTimeout       int
-	HttpReadHeaderTimeout int
-	HttpWriteTimeout      int
-	Version               string
-	EnableLimiter         bool
-	DisableCache          bool
+	Http    *Http
+	Grpc    *Grpc
+	Limiter *Limiter
+	Cache   *Cache
+	Redis   *Redis
+
+	DatabaseUrl string
+	Version     string
 }
 
-func (c *App) Validate() error {
-	if c.HttpPort < 0 || c.HttpPort > 65535 {
-		return fmt.Errorf("http: %w", errWrongNetworkPort)
+func newAppConfig() *App {
+	return &App{
+		Http:    newHttpConfig(),
+		Grpc:    newGrpcConfig(),
+		Limiter: newLimiterConfig(),
+		Cache:   newCacheConfig(),
+		Redis:   newRedisConfig(),
+
+		DatabaseUrl: "",
+		Version:     "",
 	}
-	if c.GrpcPort < 0 || c.GrpcPort > 65535 {
-		return fmt.Errorf("gRPC: %w", errWrongNetworkPort)
+}
+
+func (a *App) loadEnvs() error {
+	if a.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL"); a.DatabaseUrl == "" {
+		return errEmptyDatabaseUrlEnv
 	}
+
+	a.Limiter.loadEnvs()
+	a.Cache.loadEnvs()
+
+	return nil
+}
+
+func (c *App) validate() error {
 	if c.DatabaseUrl == "" {
 		return errEmptyDatabaseUrl
+	}
+
+	if err := c.Http.validate(); err != nil {
+		return err
+	}
+	if err := c.Grpc.validate(); err != nil {
+		return err
+	}
+	if err := c.Limiter.validate(); err != nil {
+		return err
+	}
+	if err := c.Cache.validate(); err != nil {
+		return err
+	}
+	if err := c.Redis.validate(); err != nil {
+		return err
 	}
 
 	return nil

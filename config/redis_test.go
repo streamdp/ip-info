@@ -17,48 +17,48 @@ func TestRedis_Validate(t *testing.T) {
 		{
 			name: "redis config is valid",
 			cfg: &Redis{
-				Host:     "127.0.0.1",
-				Port:     6349,
+				host:     "127.0.0.1",
+				port:     6349,
 				Password: "qwerty",
-				Db:       1,
+				db:       1,
 			},
 			wantErr: nil,
 		},
 		{
 			name: "wrong host",
 			cfg: &Redis{
-				Host:     "",
-				Port:     6379,
+				host:     "",
+				port:     6379,
 				Password: "qwerty",
-				Db:       1,
+				db:       1,
 			},
 			wantErr: errRedisHost,
 		},
 		{
 			name: "wrong port",
 			cfg: &Redis{
-				Host:     "127.0.0.1",
-				Port:     -1,
+				host:     "127.0.0.1",
+				port:     -1,
 				Password: "qwerty",
-				Db:       1,
+				db:       1,
 			},
 			wantErr: errWrongNetworkPort,
 		},
 		{
 			name: "wrong db",
 			cfg: &Redis{
-				Host:     "127.0.0.1",
-				Port:     6379,
+				host:     "127.0.0.1",
+				port:     6379,
 				Password: "qwerty",
-				Db:       150,
+				db:       150,
 			},
 			wantErr: errRedisDb,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.Validate(); err != nil && !errors.Is(err, tt.wantErr) {
-				t.Errorf("Validate() error = %v, wantErr %v", err, tt.wantErr)
+			if err := tt.cfg.validate(); err != nil && !errors.Is(err, tt.wantErr) {
+				t.Errorf("validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -75,10 +75,10 @@ func TestRedis_Options(t *testing.T) {
 		{
 			name: "regular get options from config",
 			l: &Redis{
-				Host:     "127.0.0.1",
-				Port:     6379,
+				host:     "127.0.0.1",
+				port:     6379,
 				Password: "qwerty",
-				Db:       1,
+				db:       1,
 			},
 			want:    &redis.Options{Addr: "127.0.0.1:6379", Password: "qwerty", DB: 1},
 			wantErr: nil,

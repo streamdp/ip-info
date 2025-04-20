@@ -26,7 +26,7 @@ type Server struct {
 func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cfg *config.App) *Server {
 	var opts []grpc.ServerOption
 
-	if cfg.EnableLimiter {
+	if cfg.Limiter.Enabled() {
 		opts = append(opts, grpc.ChainUnaryInterceptor(rateLimiterUSI(limiter)))
 	}
 
@@ -41,7 +41,7 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 
 	v1.RegisterIpInfoServer(gRpcSrv, ipInfoSrv)
 
-	if cfg.GrpcUseReflection {
+	if cfg.Grpc.UseReflection() {
 		reflection.Register(gRpcSrv)
 	}
 
@@ -49,7 +49,7 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 }
 
 func (s *Server) Run() {
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", s.cfg.GrpcPort))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", s.cfg.Grpc.Port()))
 	if err != nil {
 		s.l.Fatalf("failed to listen: %v", err)
 	}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/streamdp/ip-info/config"
 	"github.com/streamdp/ip-info/server"
@@ -30,10 +29,10 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 	return &Server{
 		locator: locator,
 		srv: &http.Server{
-			Addr:              fmt.Sprintf(":%d", cfg.HttpPort),
-			ReadTimeout:       time.Duration(cfg.HttpReadTimeout) * time.Millisecond,
-			ReadHeaderTimeout: time.Duration(cfg.HttpReadHeaderTimeout) * time.Millisecond,
-			WriteTimeout:      time.Duration(cfg.HttpWriteTimeout) * time.Millisecond,
+			Addr:              fmt.Sprintf(":%d", cfg.Http.Port()),
+			ReadTimeout:       cfg.Http.ServerReadTimeout(),
+			ReadHeaderTimeout: cfg.Http.ServerReadHeaderTimeout(),
+			WriteTimeout:      cfg.Http.ServerWriteTimeout(),
 		},
 		limiter: limiter,
 		cfg:     cfg,
@@ -44,7 +43,7 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 func (s *Server) Run() {
 	s.srv.Handler = s.initRouter()
 
-	if s.cfg.EnableLimiter {
+	if s.cfg.Limiter.Enabled() {
 		s.srv.Handler = rateLimiterMW(s.limiter, s.l, s.srv.Handler)
 	}
 

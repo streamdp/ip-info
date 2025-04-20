@@ -35,7 +35,7 @@ func (i *ipCache) Set(ctx context.Context, ipInfo *domain.IpInfo) error {
 	if err := i.cp.Set(ctx,
 		ipInfo.Ip.String(),
 		ipInfo.Bytes(),
-		time.Duration(i.cfg.TTL)*time.Second,
+		i.cfg.Ttl(),
 	); err != nil {
 		return fmt.Errorf("ip_cache: %w", err)
 	}
