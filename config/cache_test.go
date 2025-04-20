@@ -26,7 +26,7 @@ func TestCache_Validate(t *testing.T) {
 				cacher: "redis",
 				ttl:    -1,
 			},
-			wantErr: errCacheTTL,
+			wantErr: errCacheTtl,
 		},
 		{
 			name: "wrong cacher",

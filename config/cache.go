@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	errCacheTTL   = errors.New("ttl should be positive number")
+	errCacheTtl   = errors.New("ttl should be positive number")
 	errWrongCache = errors.New("wrong cacher field")
 )
 
@@ -70,7 +70,7 @@ func (c *Cache) validate() error {
 		return errWrongCache
 	}
 	if c.ttl <= 0 {
-		return fmt.Errorf("cache: %w", errCacheTTL)
+		return fmt.Errorf("cache: %w", errCacheTtl)
 	}
 
 	return nil

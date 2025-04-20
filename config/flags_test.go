@@ -94,7 +94,7 @@ func TestLoadConfig(t *testing.T) {
 				"IP_INFO_DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
 				"IP_INFO_CACHE_TTL":    "wrong",
 			},
-			wantErr: errCacheTTL,
+			wantErr: errCacheTtl,
 		},
 		{
 			name: "negative cache ttl",
@@ -102,7 +102,7 @@ func TestLoadConfig(t *testing.T) {
 				"IP_INFO_DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
 				"IP_INFO_CACHE_TTL":    "-1",
 			},
-			wantErr: errCacheTTL,
+			wantErr: errCacheTtl,
 		},
 		{
 			name: "empty db url environment variable",
