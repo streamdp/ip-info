@@ -29,7 +29,7 @@ func New(client *redis.Client, cfg *config.Limiter) (*limiter, error) {
 }
 
 func (l *limiter) Limit(ctx context.Context, ip string) error {
-	res, err := l.limiter.Allow(ctx, ip, redis_rate.PerSecond(l.cfg.RateLimit))
+	res, err := l.limiter.Allow(ctx, ip, redis_rate.PerSecond(l.cfg.RateLimit()))
 	if err != nil {
 		return fmt.Errorf("rate_limiter: %w", err)
 	}

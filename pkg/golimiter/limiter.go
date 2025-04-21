@@ -16,8 +16,8 @@ type limiter struct {
 
 func New(ctx context.Context, cfg *config.Limiter) *limiter {
 	return &limiter{
-		rate: cfg.RateLimit,
-		l:    golimiter.New(ctx, time.Duration(cfg.TTL)*time.Second),
+		rate: cfg.RateLimit(),
+		l:    golimiter.New(ctx, cfg.Ttl()),
 	}
 }
 

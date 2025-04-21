@@ -181,11 +181,11 @@ Usage of ./bin/app:
         disable cache
   -enable-limiter
         enable rate limiter
+  -h    display help
   -grpc-port int
         grpc server port (default 50051)
   -grpc-read-timeout int
         gRPC server read timeout (default 5000)
-  -h    display help
   -http-port int
         http server port (default 8080)
   -http-read-timeout int

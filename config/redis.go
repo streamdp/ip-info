@@ -9,6 +9,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	redisDefaultHost = "127.0.0.1"
+	redisDefaultPort = 6379
+	redisDefaultDb   = 0
+)
+
 var (
 	errConfigNotInitialized = errors.New("config not initialized")
 	errRedisHost            = errors.New("redis host couldn't be blank")
@@ -16,24 +22,19 @@ var (
 )
 
 type Redis struct {
-	Host     string
-	Port     int
+	host     string
+	port     int
 	Password string
-	Db       int
+	db       int
 }
 
-func (r *Redis) Validate() error {
-	if r.Host == "" {
-		return errRedisHost
+func newRedisConfig() *Redis {
+	return &Redis{
+		host:     redisDefaultHost,
+		port:     redisDefaultPort,
+		Password: "",
+		db:       redisDefaultDb,
 	}
-	if r.Port < 0 || r.Port > 65535 {
-		return fmt.Errorf("redis: %w", errWrongNetworkPort)
-	}
-	if r.Db < 0 || r.Db > 15 {
-		return fmt.Errorf("redis: %w", errRedisDb)
-	}
-
-	return nil
 }
 
 func (r *Redis) Options() (*redis.Options, error) {
@@ -51,7 +52,7 @@ func (r *Redis) Options() (*redis.Options, error) {
 	}
 
 	if h := os.Getenv("REDIS_HOSTNAME"); h != "" {
-		r.Host = h
+		r.host = h
 	}
 
 	if p := os.Getenv("REDIS_PORT"); p != "" {
@@ -59,7 +60,7 @@ func (r *Redis) Options() (*redis.Options, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid REDIS_PORT: %w", errWrongNetworkPort)
 		}
-		r.Port = n
+		r.port = n
 	}
 
 	if pass := os.Getenv("REDIS_PASSWORD"); pass != "" {
@@ -71,12 +72,26 @@ func (r *Redis) Options() (*redis.Options, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid REDIS_DB: %w", errRedisDb)
 		}
-		r.Db = n
+		r.db = n
 	}
 
 	return &redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", r.Host, r.Port),
+		Addr:     fmt.Sprintf("%s:%d", r.host, r.port),
 		Password: r.Password,
-		DB:       r.Db,
+		DB:       r.db,
 	}, nil
+}
+
+func (r *Redis) validate() error {
+	if r.host == "" {
+		return errRedisHost
+	}
+	if r.port < 0 || r.port > 65535 {
+		return fmt.Errorf("redis: %w", errWrongNetworkPort)
+	}
+	if r.db < 0 || r.db > 15 {
+		return fmt.Errorf("redis: %w", errRedisDb)
+	}
+
+	return nil
 }

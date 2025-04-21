@@ -25,16 +25,16 @@ import (
 func main() {
 	l := log.New(os.Stderr, "IP_INFO: ", log.LstdFlags)
 
-	appCfg, redisCfg, limiterCfg, cacheCfg, err := config.LoadConfig()
+	appCfg, err := config.LoadConfig()
 	if err != nil {
 		l.Fatal(err)
 	}
 
 	l.Printf("Run mode:\n")
-	l.Printf("\tLimiter enabled=%v\n", appCfg.EnableLimiter)
-	l.Printf("\tLimiter=%v\n", limiterCfg.Limiter)
-	l.Printf("\tCaching enabled=%v\n", !appCfg.DisableCache)
-	l.Printf("\tCacher=%v\n", cacheCfg.Cacher)
+	l.Printf("\tLimiter enabled=%v\n", appCfg.Limiter.Enabled())
+	l.Printf("\tLimiter=%v\n", appCfg.Limiter.Limiter())
+	l.Printf("\tCaching enabled=%v\n", appCfg.Cache.Enabled())
+	l.Printf("\tCacher=%v\n", appCfg.Cache.Cacher())
 
 	ctx := context.Background()
 
@@ -53,9 +53,9 @@ func main() {
 	go updater.New(d, l).PullUpdates(ctx)
 
 	var redisClient *redis.Client
-	if appCfg.EnableLimiter && limiterCfg.Limiter == "redis_rate" ||
-		!appCfg.DisableCache && cacheCfg.Cacher == "redis" {
-		if redisClient, err = redisclient.New(ctx, redisCfg); err != nil {
+	if appCfg.Limiter.Enabled() && appCfg.Limiter.Limiter() == "redis_rate" ||
+		appCfg.Cache.Enabled() && appCfg.Cache.Cacher() == "redis" {
+		if redisClient, err = redisclient.New(ctx, appCfg.Redis); err != nil {
 			l.Fatal(err)
 		}
 		defer func(c *redis.Client) {
@@ -66,16 +66,16 @@ func main() {
 	}
 
 	var limiter server.Limiter
-	if appCfg.EnableLimiter {
-		switch limiterCfg.Limiter {
+	if appCfg.Limiter.Enabled() {
+		switch appCfg.Limiter.Limiter() {
 		case "redis_rate":
-			if limiter, err = redislimiter.New(redisClient, limiterCfg); err != nil {
+			if limiter, err = redislimiter.New(redisClient, appCfg.Limiter); err != nil {
 				l.Fatal(err)
 			}
 		case "golimiter":
 			fallthrough
 		default:
-			limiter = golimiter.New(ctx, limiterCfg)
+			limiter = golimiter.New(ctx, appCfg.Limiter)
 		}
 	}
 
@@ -83,8 +83,8 @@ func main() {
 		cacher      ipcache.Cacher
 		ipInfoCache iplocator.IpCache
 	)
-	if !appCfg.DisableCache {
-		switch cacheCfg.Cacher {
+	if appCfg.Cache.Enabled() {
+		switch appCfg.Cache.Cacher() {
 		case "redis":
 			cacher = rediscache.New(redisClient)
 		case "microcache":
@@ -92,7 +92,7 @@ func main() {
 		default:
 			cacher = microcache.New(ctx, 60000)
 		}
-		if ipInfoCache, err = ipcache.New(cacher, cacheCfg); err != nil {
+		if ipInfoCache, err = ipcache.New(cacher, appCfg.Cache); err != nil {
 			l.Fatal(err)
 		}
 	}
