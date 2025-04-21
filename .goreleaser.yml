@@ -23,8 +23,8 @@ archives:
     files:
       - README.md
       - LICENSE
-      - pkg/redis_rate/LICENSE
-      - pkg/redis_client/LICENSE
+      - pkg/redislimiter/LICENSE
+      - pkg/redisclient/LICENSE
       - database/model/*
 checksum:
   name_template: 'checksums.txt'
