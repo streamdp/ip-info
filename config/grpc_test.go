@@ -2,38 +2,7 @@ package config
 
 import (
 	"testing"
-	"time"
 )
-
-func TestGrpc_ReadTimeout(t *testing.T) {
-	tests := []struct {
-		name string
-		g    *Grpc
-		want time.Duration
-	}{
-		{
-			name: "5 second",
-			g: &Grpc{
-				readTimeout: 5000,
-			},
-			want: 5 * time.Second,
-		},
-		{
-			name: "one hour",
-			g: &Grpc{
-				readTimeout: 60000,
-			},
-			want: 1 * time.Minute,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.g.ReadTimeout(); got != tt.want {
-				t.Errorf("ReadTimeout() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func TestGrpc_UseReflection(t *testing.T) {
 	tests := []struct {

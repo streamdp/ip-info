@@ -1,39 +1,36 @@
 package config
 
 import (
-	"errors"
-	"os"
+	"fmt"
 )
 
-var errEmptyDatabaseUrl = errors.New("database url cannot be blank")
-
 type App struct {
-	Http    *Http
-	Grpc    *Grpc
-	Limiter *Limiter
-	Cache   *Cache
-	Redis   *Redis
+	Http     *Http
+	Grpc     *Grpc
+	Limiter  *Limiter
+	Cache    *Cache
+	Redis    *Redis
+	Database *Database
 
-	DatabaseUrl string
-	Version     string
+	Version string
 }
 
 func newAppConfig() *App {
 	return &App{
-		Http:    newHttpConfig(),
-		Grpc:    newGrpcConfig(),
-		Limiter: newLimiterConfig(),
-		Cache:   newCacheConfig(),
-		Redis:   newRedisConfig(),
+		Http:     newHttpConfig(),
+		Grpc:     newGrpcConfig(),
+		Limiter:  newLimiterConfig(),
+		Cache:    newCacheConfig(),
+		Redis:    newRedisConfig(),
+		Database: newDatabaseConfig(),
 
-		DatabaseUrl: "",
-		Version:     "",
+		Version: "",
 	}
 }
 
 func (a *App) loadEnvs() error {
-	if a.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL"); a.DatabaseUrl == "" {
-		return errEmptyDatabaseUrl
+	if err := a.Database.loadEnvs(); err != nil {
+		return fmt.Errorf("failed to load 'IP_INFO_DATABASE_URL' env: %w", err)
 	}
 
 	a.Limiter.loadEnvs()
@@ -43,10 +40,9 @@ func (a *App) loadEnvs() error {
 }
 
 func (a *App) validate() error {
-	if a.DatabaseUrl == "" {
-		return errEmptyDatabaseUrl
+	if err := a.Database.validate(); err != nil {
+		return err
 	}
-
 	if err := a.Http.validate(); err != nil {
 		return err
 	}

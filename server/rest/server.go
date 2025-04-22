@@ -21,18 +21,18 @@ type Server struct {
 	srv     *http.Server
 	locator server.Locator
 	limiter server.Limiter
-	cfg     *config.App
+	cfg     *config.Http
 	l       *log.Logger
 }
 
-func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cfg *config.App) *Server {
+func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cfg *config.Http) *Server {
 	return &Server{
 		locator: locator,
 		srv: &http.Server{
-			Addr:              fmt.Sprintf(":%d", cfg.Http.Port()),
-			ReadTimeout:       cfg.Http.ServerReadTimeout(),
-			ReadHeaderTimeout: cfg.Http.ServerReadHeaderTimeout(),
-			WriteTimeout:      cfg.Http.ServerWriteTimeout(),
+			Addr:              fmt.Sprintf(":%d", cfg.Port()),
+			ReadTimeout:       cfg.ServerReadTimeout(),
+			ReadHeaderTimeout: cfg.ServerReadHeaderTimeout(),
+			WriteTimeout:      cfg.ServerWriteTimeout(),
 		},
 		limiter: limiter,
 		cfg:     cfg,
@@ -43,7 +43,7 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 func (s *Server) Run() {
 	s.srv.Handler = s.initRouter()
 
-	if s.cfg.Limiter.Enabled() {
+	if s.limiter != nil {
 		s.srv.Handler = rateLimiterMW(s.limiter, s.l, s.srv.Handler)
 	}
 

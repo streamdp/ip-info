@@ -19,9 +19,6 @@ import (
 )
 
 func (s *Server) GetIpInfo(ctx context.Context, in *v1.Ip) (*v1.Response, error) {
-	ctx, cancel := context.WithTimeout(ctx, s.cfg.Grpc.ReadTimeout())
-	defer cancel()
-
 	response, err := s.locator.GetIpInfo(ctx, in.GetIp())
 	if err != nil {
 		s.l.Println(err)
@@ -33,9 +30,6 @@ func (s *Server) GetIpInfo(ctx context.Context, in *v1.Ip) (*v1.Response, error)
 }
 
 func (s *Server) GetClientIp(ctx context.Context, _ *emptypb.Empty) (*v1.Response, error) {
-	ctx, cancel := context.WithTimeout(ctx, s.cfg.Grpc.ReadTimeout())
-	defer cancel()
-
 	response, err := s.locator.GetIpInfo(ctx, grpcClientIp(ctx))
 	if err != nil {
 		s.l.Println(err)
