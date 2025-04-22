@@ -28,9 +28,9 @@ func (d *db) loadDatabaseConfig(ctx context.Context) error {
 		return errLoadConfig
 	}
 
-	d.cfg.LastUpdate = dto.LastUpdate
-	d.cfg.ActiveTable = dto.ActiveTable
-	d.cfg.BackupTable = dto.BackupTable
+	d.dbIpCfg.LastUpdate = dto.LastUpdate
+	d.dbIpCfg.ActiveTable = dto.ActiveTable
+	d.dbIpCfg.BackupTable = dto.BackupTable
 
 	return nil
 }
@@ -41,11 +41,11 @@ func (d *db) updateDatabaseConfig(ctx context.Context) error {
 	_, err := d.ExecContext(ctx, fmt.Sprintf(
 		"update %s set last_update=now() at time zone 'utc', active_table='%s', backup_table='%s';",
 		configTableName,
-		d.cfg.ActiveTable,
-		d.cfg.BackupTable,
+		d.dbIpCfg.ActiveTable,
+		d.dbIpCfg.BackupTable,
 	))
 	if err == nil {
-		d.cfg.LastUpdate = time.Now().UTC()
+		d.dbIpCfg.LastUpdate = time.Now().UTC()
 	} else {
 		return fmt.Errorf("error updating config: %w", err)
 	}

@@ -38,7 +38,7 @@ func main() {
 
 	ctx := context.Background()
 
-	d, errDb := database.Connect(appCfg, l)
+	d, errDb := database.Connect(l, appCfg.Database)
 	if errDb != nil {
 		l.Fatalln(errDb)
 
@@ -99,7 +99,7 @@ func main() {
 
 	ipLocator := iplocator.New(d, ipInfoCache)
 
-	httpSrv := rest.NewServer(ipLocator, l, limiter, appCfg)
+	httpSrv := rest.NewServer(ipLocator, l, limiter, appCfg.Http)
 	defer func(srv *rest.Server) {
 		ctxTimeout, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer cancel()

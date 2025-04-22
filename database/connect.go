@@ -13,22 +13,24 @@ import (
 
 type db struct {
 	*sql.DB
+	cfg *config.Database
 
-	l   *log.Logger
-	cfg *domain.DatabaseConfig
+	l       *log.Logger
+	dbIpCfg *domain.DatabaseConfig
 }
 
-func Connect(cfg *config.App, l *log.Logger) (*db, error) {
-	sqlDb, err := sql.Open("postgres", cfg.DatabaseUrl)
+func Connect(l *log.Logger, cfg *config.Database) (*db, error) {
+	sqlDb, err := sql.Open("postgres", cfg.Url())
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
 	return &db{
-		DB: sqlDb,
+		DB:  sqlDb,
+		cfg: cfg,
 
 		l: l,
-		cfg: &domain.DatabaseConfig{
+		dbIpCfg: &domain.DatabaseConfig{
 			LastUpdate:  time.Now().Add(-31 * 24 * time.Hour),
 			ActiveTable: "ip_to_city_one",
 			BackupTable: "ip_to_city_two",

@@ -35,7 +35,6 @@ func TestLoadConfig(t *testing.T) {
 				},
 				Grpc: &Grpc{
 					port:          gRPCServerDefaultPort,
-					readTimeout:   gRPCServerDefaultTimeout,
 					useReflection: false,
 				},
 				Limiter: &Limiter{
@@ -55,9 +54,12 @@ func TestLoadConfig(t *testing.T) {
 					Password: "",
 					db:       redisDefaultDb,
 				},
+				Database: &Database{
+					url:            "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
+					requestTimeout: databaseRequestTimeout,
+				},
 
-				DatabaseUrl: "postgresql://postgres:postgres@postgres:5432/dbip?sslmode=disable",
-				Version:     "",
+				Version: "",
 			},
 			wantErr: nil,
 		},

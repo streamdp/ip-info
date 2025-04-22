@@ -177,15 +177,15 @@ Usage of ./bin/app:
         cache ttl in seconds (default 3600)
   -cacher string
         where to store cache entries: redis, microcache (default "microcache")
+  -db-request-timeout int
+        database request timeout in milliseconds (default 5000)
   -disable-cache
         disable cache
   -enable-limiter
         enable rate limiter
-  -h    display help
   -grpc-port int
         grpc server port (default 50051)
-  -grpc-read-timeout int
-        gRPC server read timeout (default 5000)
+  -h    display help
   -http-port int
         http server port (default 8080)
   -http-read-timeout int

@@ -37,7 +37,7 @@ func (d *db) importCsv(ctx context.Context, url string) error {
 
 	_, err := d.ExecContext(ctx,
 		fmt.Sprintf("copy %s from program 'wget -qO- %s|gzip -d' csv null 'null' delimiter ',';",
-			d.cfg.BackupTable,
+			d.dbIpCfg.BackupTable,
 			url,
 		))
 	if err != nil {
@@ -48,9 +48,9 @@ func (d *db) importCsv(ctx context.Context, url string) error {
 }
 
 func (d *db) truncate(ctx context.Context) error {
-	d.l.Printf("truncate %s table before importing update", d.cfg.BackupTable)
+	d.l.Printf("truncate %s table before importing update", d.dbIpCfg.BackupTable)
 
-	if _, err := d.ExecContext(ctx, fmt.Sprintf("truncate table %s;", d.cfg.BackupTable)); err != nil {
+	if _, err := d.ExecContext(ctx, fmt.Sprintf("truncate table %s;", d.dbIpCfg.BackupTable)); err != nil {
 		return fmt.Errorf("failed to truncate table: %w", err)
 	}
 
@@ -58,12 +58,12 @@ func (d *db) truncate(ctx context.Context) error {
 }
 
 func (d *db) createIndex(ctx context.Context) error {
-	d.l.Printf("creating %s_ip_start_gist_idx index on %s table", d.cfg.BackupTable, d.cfg.BackupTable)
+	d.l.Printf("creating %s_ip_start_gist_idx index on %s table", d.dbIpCfg.BackupTable, d.dbIpCfg.BackupTable)
 
 	_, err := d.ExecContext(ctx,
 		fmt.Sprintf("create index if not exists %s_ip_start_gist_idx on %s using gist (ip_start inet_ops);",
-			d.cfg.BackupTable,
-			d.cfg.BackupTable,
+			d.dbIpCfg.BackupTable,
+			d.dbIpCfg.BackupTable,
 		))
 	if err != nil {
 		return fmt.Errorf("failed to create index: %w", err)
@@ -73,9 +73,9 @@ func (d *db) createIndex(ctx context.Context) error {
 }
 
 func (d *db) dropIndex(ctx context.Context) error {
-	d.l.Printf("droping %s_ip_start_gist_idx index", d.cfg.BackupTable)
+	d.l.Printf("droping %s_ip_start_gist_idx index", d.dbIpCfg.BackupTable)
 
-	_, err := d.ExecContext(ctx, fmt.Sprintf("drop index if exists %s_ip_start_gist_idx;", d.cfg.BackupTable))
+	_, err := d.ExecContext(ctx, fmt.Sprintf("drop index if exists %s_ip_start_gist_idx;", d.dbIpCfg.BackupTable))
 	if err != nil {
 		return fmt.Errorf("failed to drop index: %w", err)
 	}
@@ -85,15 +85,18 @@ func (d *db) dropIndex(ctx context.Context) error {
 
 func (d *db) switchTables() {
 	d.l.Println("switching backup and working tables")
-	d.cfg.ActiveTable, d.cfg.BackupTable = d.cfg.BackupTable, d.cfg.ActiveTable
+	d.dbIpCfg.ActiveTable, d.dbIpCfg.BackupTable = d.dbIpCfg.BackupTable, d.dbIpCfg.ActiveTable
 }
 
 func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
+	ctx, cancel := context.WithTimeout(ctx, d.cfg.RequestTimeout())
+	defer cancel()
+
 	dto := &ipToCityDto{}
 
 	if err := d.QueryRowContext(ctx,
 		fmt.Sprintf("select * from %s where '%s' >= ip_start order by ip_start desc limit 1;",
-			d.cfg.ActiveTable,
+			d.dbIpCfg.ActiveTable,
 			ip.String(),
 		),
 	).Scan(
@@ -128,8 +131,8 @@ func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
 	if err := d.loadDatabaseConfig(ctx); err != nil {
 		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
 	}
-	if d.cfg.LastUpdate.Month() == time.Now().Month() {
-		return nextUpdateInterval(d.cfg.LastUpdate), ErrNoUpdateRequired
+	if d.dbIpCfg.LastUpdate.Month() == time.Now().Month() {
+		return nextUpdateInterval(d.dbIpCfg.LastUpdate), ErrNoUpdateRequired
 	}
 
 	if err := d.acquireLock(ctx); err != nil {
@@ -159,7 +162,7 @@ func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
 		d.l.Printf("update ip database: %v", err)
 	}
 
-	return nextUpdateInterval(d.cfg.LastUpdate), nil
+	return nextUpdateInterval(d.dbIpCfg.LastUpdate), nil
 }
 
 func buildDownloadUrl(t time.Time) string {

@@ -4,17 +4,12 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 )
 
-const (
-	gRPCServerDefaultPort    = 50051
-	gRPCServerDefaultTimeout = 5000
-)
+const gRPCServerDefaultPort = 50051
 
 type Grpc struct {
 	port          int
-	readTimeout   int
 	useReflection bool
 }
 
@@ -23,13 +18,8 @@ func newGrpcConfig() *Grpc {
 
 	return &Grpc{
 		port:          gRPCServerDefaultPort,
-		readTimeout:   gRPCServerDefaultTimeout,
 		useReflection: useReflection,
 	}
-}
-
-func (g *Grpc) ReadTimeout() time.Duration {
-	return time.Duration(g.readTimeout) * time.Millisecond
 }
 
 func (g *Grpc) UseReflection() bool {
