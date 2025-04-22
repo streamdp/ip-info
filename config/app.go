@@ -5,10 +5,7 @@ import (
 	"os"
 )
 
-var (
-	errEmptyDatabaseUrl    = errors.New("database url cannot be blank")
-	errEmptyDatabaseUrlEnv = errors.New("IP_INFO_DATABASE_URL environment variable not set")
-)
+var errEmptyDatabaseUrl = errors.New("database url cannot be blank")
 
 type App struct {
 	Http    *Http
@@ -36,7 +33,7 @@ func newAppConfig() *App {
 
 func (a *App) loadEnvs() error {
 	if a.DatabaseUrl = os.Getenv("IP_INFO_DATABASE_URL"); a.DatabaseUrl == "" {
-		return errEmptyDatabaseUrlEnv
+		return errEmptyDatabaseUrl
 	}
 
 	a.Limiter.loadEnvs()
