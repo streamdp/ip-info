@@ -45,24 +45,24 @@ func (a *App) loadEnvs() error {
 	return nil
 }
 
-func (c *App) validate() error {
-	if c.DatabaseUrl == "" {
+func (a *App) validate() error {
+	if a.DatabaseUrl == "" {
 		return errEmptyDatabaseUrl
 	}
 
-	if err := c.Http.validate(); err != nil {
+	if err := a.Http.validate(); err != nil {
 		return err
 	}
-	if err := c.Grpc.validate(); err != nil {
+	if err := a.Grpc.validate(); err != nil {
 		return err
 	}
-	if err := c.Limiter.validate(); err != nil {
+	if err := a.Limiter.validate(); err != nil {
 		return err
 	}
-	if err := c.Cache.validate(); err != nil {
+	if err := a.Cache.validate(); err != nil {
 		return err
 	}
-	if err := c.Redis.validate(); err != nil {
+	if err := a.Redis.validate(); err != nil {
 		return err
 	}
 
