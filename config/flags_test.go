@@ -109,7 +109,7 @@ func TestLoadConfig(t *testing.T) {
 			envs: map[string]string{
 				"IP_INFO_DATABASE_URL": "",
 			},
-			wantErr: errEmptyDatabaseUrlEnv,
+			wantErr: errEmptyDatabaseUrl,
 		},
 	}
 	for _, tt := range tests {
