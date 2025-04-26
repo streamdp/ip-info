@@ -21,7 +21,7 @@ jobs:
         go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.2
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
     - name: Run GoReleaser
-      uses: goreleaser/goreleaser-action@v6.0.0
+      uses: goreleaser/goreleaser-action@v6.3.0
       with:
         # either 'goreleaser' (default) or 'goreleaser-pro'
         distribution: goreleaser
