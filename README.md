@@ -212,5 +212,3 @@ Usage of ./bin/app:
 Contributions are welcome! If you encounter any issues, have suggestions for new features, or want to improve **ip-info**, please feel free to open an issue or submit a pull request on the project's GitHub repository.
 ### License
 **ip-info** is released under the _GPL 3.0_ License. See the [LICENSE](https://github.com/streamdp/ip-info/blob/master/LICENSE) file for complete license details.
-### Support project
-[DigitalOcean](https://www.digitalocean.com/?refcode=253bf19488bd&utm_campaign=Referral_Invite&utm_medium=Referral_Program) referral link.
