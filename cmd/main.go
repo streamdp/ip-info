@@ -99,7 +99,7 @@ func main() {
 
 	ipLocator := iplocator.New(d, ipInfoCache)
 
-	httpSrv := rest.NewServer(ipLocator, l, limiter, appCfg.Http)
+	httpSrv := rest.NewServer(ipLocator, l, limiter, appCfg.Http, appCfg.Version())
 	defer func(srv *rest.Server) {
 		ctxTimeout, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer cancel()

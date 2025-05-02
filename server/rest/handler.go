@@ -49,6 +49,16 @@ func (s *Server) healthz() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+func (s *Server) version() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := writeJsonResponse(w, http.StatusOK,
+			domain.NewResponse(nil, map[string]string{"version": s.appVersion}),
+		); err != nil {
+			s.l.Println(err)
+		}
+	}
+}
+
 func getHttpStatus(err error) int {
 	if err == nil {
 		return http.StatusOK

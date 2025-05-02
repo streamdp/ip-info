@@ -23,9 +23,17 @@ type Server struct {
 	limiter server.Limiter
 	cfg     *config.Http
 	l       *log.Logger
+
+	appVersion string
 }
 
-func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cfg *config.Http) *Server {
+func NewServer(
+	locator server.Locator,
+	l *log.Logger,
+	limiter server.Limiter,
+	cfg *config.Http,
+	appVersion string,
+) *Server {
 	return &Server{
 		locator: locator,
 		srv: &http.Server{
@@ -34,9 +42,10 @@ func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cf
 			ReadHeaderTimeout: cfg.ServerReadHeaderTimeout(),
 			WriteTimeout:      cfg.ServerWriteTimeout(),
 		},
-		limiter: limiter,
-		cfg:     cfg,
-		l:       l,
+		limiter:    limiter,
+		cfg:        cfg,
+		l:          l,
+		appVersion: appVersion,
 	}
 }
 
@@ -64,6 +73,7 @@ func (s *Server) initRouter() http.Handler {
 	mux.HandleFunc("GET /ip-info", contentTypeRestrictionMW(s.l, s.ipInfo(false), jsonContentType))
 	mux.HandleFunc("GET /client-ip", contentTypeRestrictionMW(s.l, s.ipInfo(true), jsonContentType))
 	mux.HandleFunc("GET /healthz", contentTypeRestrictionMW(s.l, s.healthz(), textPlainContentType))
+	mux.HandleFunc("GET /app/version", contentTypeRestrictionMW(s.l, s.version(), jsonContentType))
 
 	return mux
 }

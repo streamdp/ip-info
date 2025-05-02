@@ -12,7 +12,7 @@ type App struct {
 	Redis    *Redis
 	Database *Database
 
-	Version string
+	version string
 }
 
 func newAppConfig() *App {
@@ -24,8 +24,12 @@ func newAppConfig() *App {
 		Redis:    newRedisConfig(),
 		Database: newDatabaseConfig(),
 
-		Version: "",
+		version: version,
 	}
+}
+
+func (a *App) Version() string {
+	return a.version
 }
 
 func (a *App) loadEnvs() error {
