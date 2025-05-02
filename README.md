@@ -1,13 +1,13 @@
-## IP-INFO
+# IP-INFO
 [![Website ip-info.oncook.top](https://img.shields.io/website-up-down-green-red/https/ip-info.oncook.top.svg)](https://ip-info.oncook.top)
 [![GitHub release](https://img.shields.io/github/release/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/releases/)
 [![test](https://github.com/streamdp/ip-info/actions/workflows/test.yml/badge.svg)](https://github.com/streamdp/ip-info/actions/workflows/test.yml)
-### Microservice for IP-based geolocation
+## Microservice for IP-based geolocation
 This microservice is a small, independent software application designed to determine the geographic location of a device 
 based on its IP address. It achieves this by using a free public database called [db-ip.com](https://db-ip.com)
 (*free version provides about __77%__ accuracy*), which contains a vast amount
 of information linking IP addresses to specific locations.
-### Key features:
+## Key features:
 * **Automatic Database Updates:** The microservice regularly updates its local copy of the **db-ip.com** database to 
 ensure that the location data is always accurate and up-to-date.
 * **Fast Lookup:** It is optimized to perform quick searches within the database, allowing it to efficiently determine 
@@ -17,7 +17,17 @@ flexibility in how it can be integrated into other systems or applications.
 * **Rate limiting:** The microservice provides per-client rate limits and sends a **429** HTTP response when the client makes 
 requests too frequently.
 * **Caching:** The microservice implements caching to improve availability and reduce database load. 
-### Usage example:
+## API:
+List of the **HTTP** endpoints:
+* [GET] **/healthz** - check node status
+* [GET] **/client-ip** - return client ip address info, works like other "my ip" services
+* [GET] **/ip-info** - return info for the specified ip address
+* [GET] **/app/version** - return app version
+
+List of the **gRPC** methods:
+* [GRPC] **/IpInfo/GetClientIp** _return client ip address info, works like other "my ip" services_
+* [GRPC] **/IpInfo/GetIpInfo** _return info for the specified ip address_
+## Usage example:
 Start postgresql and ip-info containers:
 ```shell
 $ docker-compose up -d
@@ -64,7 +74,7 @@ $ grpcurl  -plaintext -d '{"ip": "211.27.38.98"}' 127.0.0.1:50051 IpInfo/GetIpIn
   "longitude": -33.8688
 }
 ```
-### Benchmarking (i3-7100U CPU @ 2.40GHz)
+## Benchmarking (i3-7100U CPU @ 2.40GHz)
 IP randomization is not supported for security reasons, the difference in tests is about 10% for cases where 1 IP is 
 requested and when the IP is requested randomly.
 * **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey) **without** cache:
@@ -117,7 +127,7 @@ when **memory** cache used:
   Average:      0.37 ms
   Requests/sec: 3285.49
 ```
-### Rate limiting
+## Rate limiting
 You could choose **limiter** between [redis_rate](https://github.com/go-redis/redis_rate) (_redis_ should be present)
 and [golimiter](https://github.com/streamdp/golimiter), using **-limiter** flag or **IP_INFO_LIMITER**
 environment variable. To enable rate limiting run _ip-info_ microservice with the **-enable-limiter** flag or 
@@ -151,7 +161,7 @@ services:
 ```shell
 $ docker-compose up -d
 ```
-### Caching
+## Caching
 Caching in-memory with [microcache](https://github.com/streamdp/microcache) library is enabled by default, to disable you need 
 to run _ip-info_ microservice with the **-disable-cache** flag or **IP_INFO_DISABLE_CACHE=true** environment variable. 
 The default **TTL** value is **3600** seconds, you can adjust it with the **-cache-ttl** flag or **IP_INFO_CACHE_TTL** 
@@ -166,7 +176,7 @@ services:
          - IP_INFO_CACHER=redis # default "microcache"
          - REDIS_URL=redis://:qwerty@redis:6379/0
 ```
-### Help 
+## Help 
 You can see all available command flags when you run the application with the -h flag.
 ```shell
 $ ./bin/app -h
@@ -208,7 +218,7 @@ Usage of ./bin/app:
   -write-timeout int
         http server write timeout (default 5000)
 ```
-### Contributing
+## Contributing
 Contributions are welcome! If you encounter any issues, have suggestions for new features, or want to improve **ip-info**, please feel free to open an issue or submit a pull request on the project's GitHub repository.
-### License
+## License
 **ip-info** is released under the _GPL 3.0_ License. See the [LICENSE](https://github.com/streamdp/ip-info/blob/master/LICENSE) file for complete license details.
