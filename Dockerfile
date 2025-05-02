@@ -8,7 +8,7 @@ RUN apk update && apk upgrade
 WORKDIR /build
 ADD . /build
 RUN go mod download
-RUN go build -mod=readonly -o app -ldflags="-s -X github.com/streamdp/ip-info/config.Version=$VERSION" ./cmd
+RUN go build -mod=readonly -o app -ldflags="-s -X github.com/streamdp/ip-info/config.version=$VERSION" ./cmd
 
 FROM gcr.io/distroless/static-debian12
 
