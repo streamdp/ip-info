@@ -117,9 +117,7 @@ func TestServer_healthz(t *testing.T) {
 	handler(w, r)
 
 	res := w.Result()
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(res.Body)
+	t.Cleanup(func() { _ = res.Body.Close() })
 
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("healthz() = %d, want %d", res.StatusCode, http.StatusOK)
@@ -193,9 +191,7 @@ func TestServer_ipInfo(t *testing.T) {
 			handler(w, r)
 
 			res := w.Result()
-			defer func(Body io.ReadCloser) {
-				_ = Body.Close()
-			}(res.Body)
+			t.Cleanup(func() { _ = res.Body.Close() })
 
 			if res.StatusCode != tt.wantStatusCode {
 				t.Errorf("ipInfo() = %d, want %d", res.StatusCode, tt.wantStatusCode)
@@ -228,6 +224,61 @@ func TestServer_ipInfo(t *testing.T) {
 				if content["ip"] != tt.ip {
 					t.Fatalf("expected \"%s\", got: %v", tt.ip, content["ip"])
 				}
+			}
+		})
+	}
+}
+
+func TestServer_version(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		appVersion string
+	}{
+		{
+			name:       "version v0.0.1",
+			appVersion: "v0.0.1",
+		},
+		{
+			name:       "version v0.0.2",
+			appVersion: "v0.0.2",
+		},
+		{
+			name:       "empty version",
+			appVersion: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := (&Server{appVersion: tt.appVersion}).version()
+
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/app/version", nil)
+
+			handler(w, r)
+
+			res := w.Result()
+			t.Cleanup(func() { _ = res.Body.Close() })
+
+			if res.StatusCode != http.StatusOK {
+				t.Errorf("version() = %d, want %d", res.StatusCode, http.StatusOK)
+			}
+
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Fatalf("read body: expected no error, got: %v", err)
+			}
+
+			out := domain.Response{}
+			if err = json.Unmarshal(body, &out); err != nil {
+				t.Fatalf("unmarshal body: expected no error, got: %v", err)
+			}
+
+			if content, ok := out.Content.(map[string]any); !ok || content["version"] != tt.appVersion {
+				t.Fatalf("expected \"version\":\"%s\", got: %v", tt.appVersion, out.Content)
 			}
 		})
 	}

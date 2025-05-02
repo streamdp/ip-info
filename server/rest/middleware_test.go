@@ -53,9 +53,7 @@ func Test_rateLimiterMW(t *testing.T) {
 			mw.ServeHTTP(w, tt.request)
 
 			res := w.Result()
-			defer func(Body io.ReadCloser) {
-				_ = Body.Close()
-			}(res.Body)
+			t.Cleanup(func() { _ = res.Body.Close() })
 
 			if res.StatusCode != tt.wantStatusCode {
 				t.Errorf("rateLimiterMW() = %d, want %d", res.StatusCode, tt.wantStatusCode)
@@ -122,9 +120,9 @@ func Test_contentTypeRestrictionMW(t *testing.T) {
 			mw.ServeHTTP(w, tt.request)
 
 			res := w.Result()
-			defer func(Body io.ReadCloser) {
-				_ = Body.Close()
-			}(res.Body)
+			t.Cleanup(func() {
+				_ = res.Body.Close()
+			})
 
 			if res.StatusCode != tt.wantStatusCode {
 				t.Errorf("contentTypeRestrictionMW() = %d, want %d", res.StatusCode, tt.wantStatusCode)
