@@ -59,7 +59,7 @@ func TestLoadConfig(t *testing.T) {
 					requestTimeout: databaseRequestTimeout,
 				},
 
-				Version: "",
+				version: "0.0.1",
 			},
 			wantErr: nil,
 		},

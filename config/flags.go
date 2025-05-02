@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-var Version = "0.0.1"
+var version = "0.0.1"
 
 func LoadConfig() (*App, error) {
 	var (
@@ -55,7 +55,7 @@ func LoadConfig() (*App, error) {
 	}
 
 	if showVersion {
-		fmt.Printf("ip-info version: %s\n", Version)
+		fmt.Printf("ip-info version: %s\n", version)
 		os.Exit(0)
 	}
 
