@@ -120,9 +120,7 @@ func Test_contentTypeRestrictionMW(t *testing.T) {
 			mw.ServeHTTP(w, tt.request)
 
 			res := w.Result()
-			t.Cleanup(func() {
-				_ = res.Body.Close()
-			})
+			t.Cleanup(func() { _ = res.Body.Close() })
 
 			if res.StatusCode != tt.wantStatusCode {
 				t.Errorf("contentTypeRestrictionMW() = %d, want %d", res.StatusCode, tt.wantStatusCode)
