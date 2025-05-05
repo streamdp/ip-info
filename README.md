@@ -25,8 +25,8 @@ List of the **HTTP** endpoints:
 * [GET] **/app/version** - return app version
 
 List of the **gRPC** methods:
-* [GRPC] **/IpInfo/GetClientIp** _return client ip address info, works like other "my ip" services_
-* [GRPC] **/IpInfo/GetIpInfo** _return info for the specified ip address_
+* [GRPC] **/IpInfo/GetClientIp** - return client ip address info, works like other "my ip" services
+* [GRPC] **/IpInfo/GetIpInfo** - return info for the specified ip address
 ## Usage example:
 Start postgresql and ip-info containers:
 ```shell
