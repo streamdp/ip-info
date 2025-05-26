@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"unicode"
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
@@ -88,6 +89,13 @@ func httpClientIp(r *http.Request) string {
 	}
 	if ip := r.Header.Get(iplocator.CfConnectingIp); ip != "" {
 		return ip
+	}
+
+	if strings.ContainsAny(r.RemoteAddr, "[]") {
+		return strings.Trim(
+			strings.TrimRightFunc(r.RemoteAddr, func(r rune) bool { return unicode.IsDigit(r) || r == ':' }),
+			"[]",
+		)
 	}
 
 	if strings.Contains(r.RemoteAddr, ":") {
