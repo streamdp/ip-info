@@ -57,6 +57,20 @@ func Test_httpClientIp(t *testing.T) {
 			},
 			want: "123.12.21.3",
 		},
+		{
+			name: "ipv6 placed in brackets with port",
+			request: &http.Request{
+				RemoteAddr: "[::1]:8080",
+			},
+			want: "::1",
+		},
+		{
+			name: "ipv6 in brackets without port",
+			request: &http.Request{
+				RemoteAddr: "[::1]",
+			},
+			want: "::1",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
