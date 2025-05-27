@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net"
-	"strings"
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
@@ -73,7 +72,7 @@ func grpcClientIp(ctx context.Context) string {
 	}
 
 	if p, ok := peer.FromContext(ctx); ok {
-		return strings.Split(p.Addr.String(), ":")[0]
+		return server.ExtractIpAddress(p.Addr.String())
 	}
 
 	return ""
