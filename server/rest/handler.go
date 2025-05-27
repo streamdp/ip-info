@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
-	"unicode"
 
 	"github.com/streamdp/ip-info/database"
 	"github.com/streamdp/ip-info/domain"
@@ -91,16 +89,5 @@ func httpClientIp(r *http.Request) string {
 		return ip
 	}
 
-	if strings.ContainsAny(r.RemoteAddr, "[]") {
-		return strings.Trim(
-			strings.TrimRightFunc(r.RemoteAddr, func(r rune) bool { return unicode.IsDigit(r) || r == ':' }),
-			"[]",
-		)
-	}
-
-	if strings.Contains(r.RemoteAddr, ":") {
-		return strings.Split(r.RemoteAddr, ":")[0]
-	}
-
-	return r.RemoteAddr
+	return server.ExtractIpAddress(r.RemoteAddr)
 }

@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"errors"
+	"strings"
+	"unicode"
 
 	"github.com/streamdp/ip-info/domain"
 )
@@ -18,4 +20,15 @@ type Locator interface {
 
 type Limiter interface {
 	Limit(ctx context.Context, ip string) error
+}
+
+func ExtractIpAddress(ip string) string {
+	if strings.ContainsAny(ip, "[]") {
+		return strings.Trim(
+			strings.TrimRightFunc(ip, func(r rune) bool { return unicode.IsDigit(r) || r == ':' }),
+			"[]",
+		)
+	}
+
+	return strings.Split(ip, ":")[0]
 }
