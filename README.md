@@ -79,7 +79,7 @@ IP randomization is not supported for security reasons, the difference in tests 
 requested and when the IP is requested randomly.
 * **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey) **without** cache:
 ```shell
-$ hey -c 2 -n 10000 http://127.0.0.1:8080/ip-info?ip=8.8.8.8
+$ hey -c 2 -n 10000 -T "application/json" http://127.0.0.1:8080/ip-info?ip=8.8.8.8
   Total:        3.7542 secs
   Slowest:      0.0097 secs
   Fastest:      0.0005 secs
