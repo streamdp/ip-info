@@ -17,7 +17,6 @@ const downloadUrl = "https://download.db-ip.com/free/dbip-city-lite-%d-%s.csv.gz
 var (
 	ErrNoUpdateRequired = errors.New("no update required")
 	ErrNoIpAddress      = errors.New("no ip address in the database")
-	errUpdateIpDatabase = errors.New("failed to update ip database")
 	errDatabaseError    = errors.New("database error")
 )
 
@@ -129,14 +128,16 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 
 func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
 	if err := d.loadDatabaseConfig(ctx); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
+		return 0, err
 	}
-	if d.dbIpCfg.LastUpdate.Month() == time.Now().Month() {
+
+	now := time.Now().UTC()
+	if d.dbIpCfg.LastUpdate.Year() == now.Year() && d.dbIpCfg.LastUpdate.Month() == now.Month() {
 		return nextUpdateInterval(d.dbIpCfg.LastUpdate), ErrNoUpdateRequired
 	}
 
 	if err := d.acquireLock(ctx); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
+		return 0, err
 	}
 	defer func() {
 		if errReleaseLock := d.releaseLock(ctx); errReleaseLock != nil {
@@ -145,16 +146,16 @@ func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
 	}()
 
 	if err := d.truncate(ctx); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
+		return 0, err
 	}
 	if err := d.dropIndex(ctx); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
+		return 0, err
 	}
 	if err := d.importCsv(ctx, buildDownloadUrl(time.Now())); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
+		return 0, err
 	}
 	if err := d.createIndex(ctx); err != nil {
-		return 0, fmt.Errorf("%w: %w", errUpdateIpDatabase, err)
+		return 0, err
 	}
 	d.switchTables()
 

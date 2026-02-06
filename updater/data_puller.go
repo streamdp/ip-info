@@ -42,7 +42,7 @@ func (p *puller) PullUpdates(ctx context.Context) {
 			p.l.Println("ip database update started")
 			nextUpdate, err := p.d.UpdateIpDatabase(ctx)
 			if err != nil {
-				p.l.Println(err)
+				p.l.Println("failed to update ip database:", err)
 
 				if !errors.Is(err, database.ErrNoUpdateRequired) {
 					p.l.Printf("ip database update interrupted, retry after %0.1fs",
