@@ -19,7 +19,7 @@ func TestRedis_Validate(t *testing.T) {
 			cfg: &Redis{
 				host:     "127.0.0.1",
 				port:     6349,
-				Password: "qwerty",
+				password: "qwerty",
 				db:       1,
 			},
 			wantErr: nil,
@@ -29,7 +29,7 @@ func TestRedis_Validate(t *testing.T) {
 			cfg: &Redis{
 				host:     "",
 				port:     6379,
-				Password: "qwerty",
+				password: "qwerty",
 				db:       1,
 			},
 			wantErr: errRedisHost,
@@ -39,7 +39,7 @@ func TestRedis_Validate(t *testing.T) {
 			cfg: &Redis{
 				host:     "127.0.0.1",
 				port:     -1,
-				Password: "qwerty",
+				password: "qwerty",
 				db:       1,
 			},
 			wantErr: errWrongNetworkPort,
@@ -49,7 +49,7 @@ func TestRedis_Validate(t *testing.T) {
 			cfg: &Redis{
 				host:     "127.0.0.1",
 				port:     6379,
-				Password: "qwerty",
+				password: "qwerty",
 				db:       150,
 			},
 			wantErr: errRedisDb,
@@ -77,7 +77,7 @@ func TestRedis_Options(t *testing.T) {
 			l: &Redis{
 				host:     "127.0.0.1",
 				port:     6379,
-				Password: "qwerty",
+				password: "qwerty",
 				db:       1,
 			},
 			want:    &redis.Options{Addr: "127.0.0.1:6379", Password: "qwerty", DB: 1},

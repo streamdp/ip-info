@@ -24,7 +24,7 @@ var (
 type Redis struct {
 	host     string
 	port     int
-	Password string
+	password string
 	db       int
 }
 
@@ -32,7 +32,7 @@ func newRedisConfig() *Redis {
 	return &Redis{
 		host:     redisDefaultHost,
 		port:     redisDefaultPort,
-		Password: "",
+		password: "",
 		db:       redisDefaultDb,
 	}
 }
@@ -64,7 +64,7 @@ func (r *Redis) Options() (*redis.Options, error) {
 	}
 
 	if pass := os.Getenv("REDIS_PASSWORD"); pass != "" {
-		r.Password = pass
+		r.password = pass
 	}
 
 	if d := os.Getenv("REDIS_DB"); d != "" {
@@ -77,7 +77,7 @@ func (r *Redis) Options() (*redis.Options, error) {
 
 	return &redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", r.host, r.port),
-		Password: r.Password,
+		Password: r.password,
 		DB:       r.db,
 	}, nil
 }

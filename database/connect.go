@@ -13,8 +13,8 @@ import (
 
 type db struct {
 	*sql.DB
-	cfg *config.Database
 
+	cfg     *config.Database
 	l       *log.Logger
 	dbIpCfg *domain.DatabaseConfig
 }

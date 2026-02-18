@@ -5,11 +5,11 @@ import (
 )
 
 type Response struct {
-	Err     string      `json:"error"`
-	Content interface{} `json:"content"`
+	Err     string `json:"error"`
+	Content any    `json:"content"`
 }
 
-func NewResponse(err error, content interface{}) *Response {
+func NewResponse(err error, content any) *Response {
 	return &Response{
 		Err: func(err error) string {
 			if err != nil {

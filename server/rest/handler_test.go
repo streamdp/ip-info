@@ -228,7 +228,7 @@ func TestServer_ipInfo(t *testing.T) {
 					t.Fatalf("response contain error: expected no error, got: %v", resp.Err)
 				}
 
-				content, ok := resp.Content.(map[string]interface{})
+				content, ok := resp.Content.(map[string]any)
 				if !ok {
 					t.Fatalf("failed to get response content")
 

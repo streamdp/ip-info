@@ -89,7 +89,7 @@ func TestAppConfig_Validate(t *testing.T) {
 				Redis: &Redis{
 					host:     "",
 					port:     6379,
-					Password: "",
+					password: "",
 					db:       0,
 				},
 				Database: &Database{

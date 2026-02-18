@@ -16,11 +16,12 @@ import (
 //go:generate protoc ./api/proto/ip_info.proto --go_out=api/ --go-grpc_out=api/
 
 type Server struct {
+	v1.IpInfoServer
+
 	srv     *grpc.Server
 	locator server.Locator
 	cfg     *config.App
 	l       *log.Logger
-	v1.IpInfoServer
 }
 
 func NewServer(locator server.Locator, l *log.Logger, limiter server.Limiter, cfg *config.App) *Server {

@@ -51,7 +51,7 @@ func TestLoadConfig(t *testing.T) {
 				Redis: &Redis{
 					host:     redisDefaultHost,
 					port:     redisDefaultPort,
-					Password: "",
+					password: "",
 					db:       redisDefaultDb,
 				},
 				Database: &Database{
