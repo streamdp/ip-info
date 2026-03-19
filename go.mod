@@ -8,7 +8,7 @@ require (
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/streamdp/golimiter v1.1.3
 	github.com/streamdp/microcache v1.3.0
-	google.golang.org/grpc v1.79.1
+	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.11
 )
 
