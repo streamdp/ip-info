@@ -8,7 +8,7 @@ import (
 
 var errLockAcquired = errors.New("lock already acquired")
 
-const advisoryLockID = 4788125797291836 // Unique ID for the ip-info update process lock
+const advisoryLockID = 147881257 // Unique ID for the ip-info update process lock
 
 func (d *db) acquireLock(ctx context.Context) error {
 	d.l.Println("acquiring advisory lock")
