@@ -3,7 +3,7 @@
 [![GitHub release](https://img.shields.io/github/release/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/releases/)
 [![test](https://github.com/streamdp/ip-info/actions/workflows/test.yml/badge.svg)](https://github.com/streamdp/ip-info/actions/workflows/test.yml)
 ## ⚠️ Breaking Changes
-Starting from release v1.0.0, the database schema has changed. The `ip_to_city_one` and `ip_to_city_two` tables now
+Starting from release **v1.0.0**, the database schema has changed. The `ip_to_city_one` and `ip_to_city_two` tables now
 include a new generated column `ip_range` (of type `inet`), computed automatically from `ip_start` and `ip_end` using
 `inet_merge(ip_start, ip_end)`:
 ```sql
