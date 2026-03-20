@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"strconv"
 
 	"github.com/streamdp/ip-info/config"
 	"github.com/streamdp/ip-info/server"
@@ -37,7 +39,7 @@ func NewServer(
 	return &Server{
 		locator: locator,
 		srv: &http.Server{
-			Addr:              fmt.Sprintf(":%d", cfg.Port()),
+			Addr:              net.JoinHostPort("", strconv.Itoa(cfg.Port())),
 			ReadTimeout:       cfg.ServerReadTimeout(),
 			ReadHeaderTimeout: cfg.ServerReadHeaderTimeout(),
 			WriteTimeout:      cfg.ServerWriteTimeout(),

@@ -50,7 +50,7 @@ func Test_rateLimiterMW(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			mw.ServeHTTP(w, tt.request)
+			mw.ServeHTTP(w, tt.request.WithContext(t.Context()))
 
 			res := w.Result()
 			t.Cleanup(func() { _ = res.Body.Close() })
@@ -92,7 +92,7 @@ func Test_contentTypeRestrictionMW(t *testing.T) {
 			request:            httptest.NewRequest(http.MethodGet, "/client-ip", nil),
 			allowedContentType: jsonContentType,
 			requestContentType: "application/xml",
-			wantStatusCode:     http.StatusNotImplemented,
+			wantStatusCode:     http.StatusUnsupportedMediaType,
 			wantError:          true,
 		},
 		{
@@ -117,7 +117,7 @@ func Test_contentTypeRestrictionMW(t *testing.T) {
 			w := httptest.NewRecorder()
 			tt.request.Header.Set(contentTypeHeader, tt.requestContentType)
 
-			mw.ServeHTTP(w, tt.request)
+			mw.ServeHTTP(w, tt.request.WithContext(t.Context()))
 
 			res := w.Result()
 			t.Cleanup(func() { _ = res.Body.Close() })

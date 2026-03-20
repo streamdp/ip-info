@@ -63,7 +63,7 @@ func getHttpStatus(err error) int {
 		return http.StatusOK
 	}
 	if errors.Is(err, errWrongContentType) {
-		return http.StatusNotImplemented
+		return http.StatusUnsupportedMediaType
 	}
 	if errors.Is(err, server.ErrRateLimitExceeded) {
 		return http.StatusTooManyRequests

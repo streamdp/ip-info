@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -17,6 +18,7 @@ type db struct {
 	cfg     *config.Database
 	l       *log.Logger
 	dbIpCfg *domain.DatabaseConfig
+	mu      sync.RWMutex
 }
 
 func Connect(l *log.Logger, cfg *config.Database) (*db, error) {
@@ -28,10 +30,9 @@ func Connect(l *log.Logger, cfg *config.Database) (*db, error) {
 	return &db{
 		DB:  sqlDb,
 		cfg: cfg,
-
-		l: l,
+		l:   l,
 		dbIpCfg: &domain.DatabaseConfig{
-			LastUpdate:  time.Now().Add(-31 * 24 * time.Hour),
+			LastUpdate:  time.Now().UTC().Add(-31 * 24 * time.Hour),
 			ActiveTable: "ip_to_city_one",
 			BackupTable: "ip_to_city_two",
 		},

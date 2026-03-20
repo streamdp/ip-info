@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -25,9 +27,15 @@ import (
 func main() {
 	l := log.New(os.Stderr, "IP_INFO: ", log.LstdFlags)
 
+	if err := run(l); err != nil {
+		l.Fatal(err)
+	}
+}
+
+func run(l *log.Logger) error {
 	appCfg, err := config.LoadConfig()
 	if err != nil {
-		l.Fatal(err)
+		return err
 	}
 
 	l.Printf("Run mode:\n")
@@ -36,13 +44,12 @@ func main() {
 	l.Printf("\tCaching enabled=%v\n", appCfg.Cache.Enabled())
 	l.Printf("\tCacher=%v\n", appCfg.Cache.Cacher())
 
-	ctx := context.Background()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	d, errDb := database.Connect(l, appCfg.Database)
 	if errDb != nil {
-		l.Fatalln(errDb)
-
-		return
+		return errDb
 	}
 	defer func() {
 		if errClose := d.Close(); errClose != nil {
@@ -56,7 +63,7 @@ func main() {
 	if appCfg.Limiter.Enabled() && appCfg.Limiter.Limiter() == "redis_rate" ||
 		appCfg.Cache.Enabled() && appCfg.Cache.Cacher() == "redis" {
 		if redisClient, err = redisclient.New(ctx, appCfg.Redis); err != nil {
-			l.Fatal(err)
+			return err
 		}
 		defer func(c *redis.Client) {
 			if errClose := c.Close(); errClose != nil {
@@ -70,7 +77,7 @@ func main() {
 		switch appCfg.Limiter.Limiter() {
 		case "redis_rate":
 			if limiter, err = redislimiter.New(redisClient, appCfg.Limiter); err != nil {
-				l.Fatal(err)
+				return err
 			}
 		case "golimiter":
 			fallthrough
@@ -93,7 +100,7 @@ func main() {
 			cacher = microcache.New(ctx, 60000)
 		}
 		if ipInfoCache, err = ipcache.New(cacher, appCfg.Cache); err != nil {
-			l.Fatal(err)
+			return err
 		}
 	}
 
@@ -117,4 +124,6 @@ func main() {
 	go grpcSrv.Run()
 
 	<-ctx.Done()
+
+	return nil
 }

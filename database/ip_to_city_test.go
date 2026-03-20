@@ -14,14 +14,14 @@ func Test_nextUpdateInterval(t *testing.T) {
 		{
 			name: "next update interval in the future",
 			t: time.Date(
-				time.Now().Year(), time.Now().Month()+2, 1, 0, 0, 0, 0, time.UTC,
+				time.Now().UTC().Year(), time.Now().UTC().Month()+2, 1, 0, 0, 0, 0, time.UTC,
 			),
 			futureResult: true,
 		},
 		{
 			name: "next update interval in the past",
 			t: time.Date(
-				time.Now().Year(), time.Now().Month()-2, 1, 0, 0, 0, 0, time.UTC,
+				time.Now().UTC().Year(), time.Now().UTC().Month()-2, 1, 0, 0, 0, 0, time.UTC,
 			),
 			futureResult: false,
 		},
