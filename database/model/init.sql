@@ -12,7 +12,8 @@ create table ip_to_city_one (
   state_prov text,
   city       text,
   latitude   double precision,
-  longitude  double precision
+  longitude  double precision,
+  ip_range   inet generated always as (inet_merge(ip_start, ip_end)) stored
 );
 
 drop table if exists ip_to_city_two;
@@ -24,7 +25,8 @@ create table ip_to_city_two (
   state_prov text,
   city       text,
   latitude   double precision,
-  longitude  double precision
+  longitude  double precision,
+  ip_range   inet generated always as (inet_merge(ip_start, ip_end)) stored
 );
 
 drop table if exists config;

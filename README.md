@@ -2,6 +2,20 @@
 [![Website ip-info.oncook.top](https://img.shields.io/website-up-down-green-red/https/ip-info.oncook.top.svg)](https://ip-info.oncook.top)
 [![GitHub release](https://img.shields.io/github/release/streamdp/ip-info.svg)](https://github.com/streamdp/ip-info/releases/)
 [![test](https://github.com/streamdp/ip-info/actions/workflows/test.yml/badge.svg)](https://github.com/streamdp/ip-info/actions/workflows/test.yml)
+## ⚠️ Breaking Changes
+Starting from release v1.0.0, the database schema has changed. The `ip_to_city_one` and `ip_to_city_two` tables now
+include a new generated column `ip_range` (of type `inet`), computed automatically from `ip_start` and `ip_end` using
+`inet_merge(ip_start, ip_end)`:
+```sql
+ip_range inet generated always as (inet_merge(ip_start, ip_end)) stored
+```
+The SP-GiST index is now created on `ip_range` instead of `ip_start`, and IP lookups use the `>>= ` operator against
+`ip_range` instead of the previous approach.
+
+**If you are upgrading from a previous version, you must re-initialize your database** using the updated
+[init.sql](database/model/init.sql) script before starting the application. The existing schema is not compatible with
+this release and the application will not work correctly without the migration.
+
 ## Microservice for IP-based geolocation
 This microservice is a small, independent software application designed to determine the geographic location of a device 
 based on its IP address. It achieves this by using a free public database called [db-ip.com](https://db-ip.com)
@@ -16,7 +30,7 @@ the location associated with a given IP address.
 flexibility in how it can be integrated into other systems or applications.
 * **Rate limiting:** The microservice provides per-client rate limits and sends a **429** HTTP response when the client makes 
 requests too frequently.
-* **Caching:** The microservice implements caching to improve availability and reduce database load. 
+* **Caching:** The microservice implements caching to improve availability and reduce database load.
 ## API:
 List of the **HTTP** endpoints:
 * [GET] **/healthz** - check node status

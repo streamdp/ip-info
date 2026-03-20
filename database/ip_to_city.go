@@ -29,6 +29,7 @@ type ipToCityDto struct {
 	City      string  `db:"city"`
 	Latitude  float64 `db:"latitude"`
 	Longitude float64 `db:"longitude"`
+	ipRange   string  `db:"ip_range"`
 }
 
 func (d *db) importCsv(ctx context.Context, url string) error {
@@ -70,12 +71,12 @@ func (d *db) createIndex(ctx context.Context) error {
 	backupTable := d.dbIpCfg.BackupTable
 	d.mu.RUnlock()
 
-	indexName := fmt.Sprintf("%s_ip_start_spgist_idx", backupTable)
+	indexName := fmt.Sprintf("%s_ip_range_spgist_idx", backupTable)
 
 	d.l.Printf("creating %s index on %s table", indexName, backupTable)
 
 	_, err := d.ExecContext(ctx,
-		fmt.Sprintf(`create index if not exists %s on %s using spgist (ip_start);`,
+		fmt.Sprintf(`create index if not exists %s on %s using spgist(ip_range);`,
 			indexName,
 			backupTable,
 		))
@@ -91,16 +92,13 @@ func (d *db) dropIndex(ctx context.Context) error {
 	backupTable := d.dbIpCfg.BackupTable
 	d.mu.RUnlock()
 
-	for _, indexName := range []string{
-		fmt.Sprintf("%s_ip_start_gist_idx", backupTable),
-		fmt.Sprintf("%s_ip_start_spgist_idx", backupTable),
-	} {
-		d.l.Println("droping ", indexName)
+	indexName := fmt.Sprintf("%s_ip_range_spgist_idx", backupTable)
 
-		_, err := d.ExecContext(ctx, fmt.Sprintf("drop index if exists %s;", indexName))
-		if err != nil {
-			return fmt.Errorf("failed to drop index: %w", err)
-		}
+	d.l.Println("droping ", indexName)
+
+	_, err := d.ExecContext(ctx, fmt.Sprintf("drop index if exists %s;", indexName))
+	if err != nil {
+		return fmt.Errorf("failed to drop index: %w", err)
 	}
 
 	return nil
@@ -123,10 +121,10 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 	d.mu.RUnlock()
 
 	dto := &ipToCityDto{}
-
-	if err := d.QueryRowContext(ctx, fmt.Sprintf(`select * from %s where ip_start<<='%s';`,
+	if err := d.QueryRowContext(ctx, fmt.Sprintf(
+		`select * from %s where ip_range::inet>>='%s';`,
 		activeTable,
-		ip.String()+"/24",
+		ip.String(),
 	)).Scan(
 		&dto.ipStart,
 		&dto.ipEnd,
@@ -136,6 +134,7 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 		&dto.City,
 		&dto.Longitude,
 		&dto.Latitude,
+		&dto.ipRange,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoIpAddress
