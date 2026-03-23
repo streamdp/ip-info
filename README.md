@@ -137,11 +137,11 @@ when **memory** cache used, one static IP address (for cache hit checking):
 * **gRPC** benchmarking with [ghz - Simple gRPC load testing tool](https://github.com/bojand/ghz) **without** cache, random IP:
 ```shell
 $ ghz -c 2 -n 10000 127.0.0.1:50051 --call IpInfo.GetIpInfo -d '{"ip":"8.8.8.8"}' --insecure 
-  Total:	6.15 s
-  Slowest:	12.87 ms
-  Fastest:	0.50 ms
-  Average:	0.99 ms
-  Requests/sec:	1626.98
+  Total:	6.27 s
+  Slowest:	5.17 ms
+  Fastest:	0.47 ms
+  Average:	1.02 ms
+  Requests/sec:	1594.68
 ```
 when **redis** cache used, one static IP address (for cache hit checking):
 ```shell
