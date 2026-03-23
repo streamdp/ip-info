@@ -88,58 +88,76 @@ $ grpcurl  -plaintext -d '{"ip": "211.27.38.98"}' 127.0.0.1:50051 IpInfo/GetIpIn
   "longitude": -33.8688
 }
 ```
-## Benchmarking (i3-7100U CPU @ 2.40GHz)
-IP randomization is not supported for security reasons, the difference in tests is about 10% for cases where 1 IP is 
-requested and when the IP is requested randomly.
-* **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey) **without** cache:
+## Benchmarking (i3-7100U CPU @ 2.40GHz, 11GiB RAM, PostgreSQL 16.2, 8 068 719 records)
+For testing purposes, I used a simple custom function to generate a random IP address for each HTTP or gRPC call. To 
+ensure repeatability of results, I've added an example below:
+```go
+func GenerateIPV4() string {
+	return fmt.Sprintf(
+		"%d.%d.%d.%d",
+		rand.Intn(256),
+		rand.Intn(256),
+		rand.Intn(256),
+		rand.Intn(256),
+	)
+}
+
+func (s *Server) ipInfo(useClientIp bool) func(http.ResponseWriter, *http.Request) {
+        ...		
+        ipString = GenerateIPV4()
+        ipInfo, err := s.locator.GetIpInfo(r.Context(), ipString)
+        ...
+```
+For security reasons, this is not available in the production version. 
+* **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey) **without** cache, random IP:
 ```shell
 $ hey -c 2 -n 10000 -T "application/json" http://127.0.0.1:8080/ip-info?ip=8.8.8.8
-  Total:        3.7542 secs
-  Slowest:      0.0097 secs
-  Fastest:      0.0005 secs
-  Average:      0.0007 secs
-  Requests/sec: 2663.6510
+  Total:	    3.9504 secs
+  Slowest:	    0.0046 secs
+  Fastest:	    0.0004 secs
+  Average:	    0.0008 secs
+  Requests/sec:	2531.3739
 ```
-when **redis** cache used:
+when **redis** cache used, one static IP address (for cache hit checking):
 ```shell
-  Total:        2.1551 secs
-  Slowest:      0.0355 secs
-  Fastest:      0.0003 secs
-  Average:      0.0004 secs
-  Requests/sec: 4640.0855
+  Total:	2.0778 secs
+  Slowest:	0.0163 secs
+  Fastest:	0.0002 secs
+  Average:	0.0004 secs
+  Requests/sec:	4812.7207
 ```
-when **memory** cache used:
+when **memory** cache used, one static IP address (for cache hit checking):
 ```shell
-  Total:        1.0665 secs
-  Slowest:      0.0032 secs
-  Fastest:      0.0001 secs
-  Average:      0.0002 secs
-  Requests/sec: 9376.7398
+  Total:	0.8988 secs
+  Slowest:	0.0150 secs
+  Fastest:	0.0001 secs
+  Average:	0.0002 secs
+  Requests/sec:	11126.3097
 ```
-* **gRPC** benchmarking with [ghz - Simple gRPC load testing tool](https://github.com/bojand/ghz) **without** cache:
+* **gRPC** benchmarking with [ghz - Simple gRPC load testing tool](https://github.com/bojand/ghz) **without** cache, random IP:
 ```shell
 $ ghz -c 2 -n 10000 127.0.0.1:50051 --call IpInfo.GetIpInfo -d '{"ip":"8.8.8.8"}' --insecure 
-  Total:        6.73 s
-  Slowest:      8.95 ms
-  Fastest:      0.61 ms
-  Average:      1.09 ms
-  Requests/sec: 1485.69
+  Total:	6.15 s
+  Slowest:	12.87 ms
+  Fastest:	0.50 ms
+  Average:	0.99 ms
+  Requests/sec:	1626.98
 ```
-when **redis** cache used:
+when **redis** cache used, one static IP address (for cache hit checking):
 ```shell
-  Total:        4.40 s
-  Slowest:      3.55 ms
-  Fastest:      0.37 ms
-  Average:      0.63 ms
-  Requests/sec: 2270.86
+  Total:	4.63 s
+  Slowest:	7.73 ms
+  Fastest:	0.27 ms
+  Average:	0.70 ms
+  Requests/sec:	2158.29
 ```
-when **memory** cache used:
+when **memory** cache used, one static IP address (for cache hit checking):
 ```shell
-  Total:        3.04 s
-  Slowest:      2.41 ms
-  Fastest:      0.19 ms
-  Average:      0.37 ms
-  Requests/sec: 3285.49
+  Total:	3.17 s
+  Slowest:	19.62 ms
+  Fastest:	0.13 ms
+  Average:	0.42 ms
+  Requests/sec:	3154.36
 ```
 ## Rate limiting
 You could choose **limiter** between [redis_rate](https://github.com/go-redis/redis_rate) (_redis_ should be present)
