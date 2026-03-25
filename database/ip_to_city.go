@@ -33,15 +33,11 @@ type ipToCityDto struct {
 }
 
 func (d *db) importCsv(ctx context.Context, url string) error {
-	d.mu.RLock()
-	backupTable := d.dbIpCfg.BackupTable
-	d.mu.RUnlock()
-
 	d.l.Println("import ip database updates")
 
 	_, err := d.ExecContext(ctx,
 		fmt.Sprintf("copy %s from program 'wget -qO- %s|gzip -d' csv null 'null' delimiter ',';",
-			backupTable,
+			d.backupTable(),
 			url,
 		))
 	if err != nil {
@@ -52,9 +48,7 @@ func (d *db) importCsv(ctx context.Context, url string) error {
 }
 
 func (d *db) truncate(ctx context.Context) error {
-	d.mu.RLock()
-	backupTable := d.dbIpCfg.BackupTable
-	d.mu.RUnlock()
+	backupTable := d.backupTable()
 
 	d.l.Printf("truncate %s table before importing update", backupTable)
 
@@ -67,9 +61,7 @@ func (d *db) truncate(ctx context.Context) error {
 }
 
 func (d *db) createIndex(ctx context.Context) error {
-	d.mu.RLock()
-	backupTable := d.dbIpCfg.BackupTable
-	d.mu.RUnlock()
+	backupTable := d.backupTable()
 
 	indexName := fmt.Sprintf("%s_ip_range_spgist_idx", backupTable)
 
@@ -88,11 +80,7 @@ func (d *db) createIndex(ctx context.Context) error {
 }
 
 func (d *db) dropIndex(ctx context.Context) error {
-	d.mu.RLock()
-	backupTable := d.dbIpCfg.BackupTable
-	d.mu.RUnlock()
-
-	indexName := fmt.Sprintf("%s_ip_range_spgist_idx", backupTable)
+	indexName := fmt.Sprintf("%s_ip_range_spgist_idx", d.backupTable())
 
 	d.l.Println("droping ", indexName)
 
@@ -104,26 +92,14 @@ func (d *db) dropIndex(ctx context.Context) error {
 	return nil
 }
 
-func (d *db) switchTables() {
-	d.mu.Lock()
-	defer d.mu.Unlock()
-
-	d.l.Println("switching backup and working tables")
-	d.dbIpCfg.ActiveTable, d.dbIpCfg.BackupTable = d.dbIpCfg.BackupTable, d.dbIpCfg.ActiveTable
-}
-
 func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 	ctx, cancel := context.WithTimeout(ctx, d.cfg.RequestTimeout())
 	defer cancel()
 
-	d.mu.RLock()
-	activeTable := d.dbIpCfg.ActiveTable
-	d.mu.RUnlock()
-
 	dto := &ipToCityDto{}
 	if err := d.QueryRowContext(ctx, fmt.Sprintf(
 		`select * from %s where ip_range::inet>>='%s';`,
-		activeTable,
+		d.activeTable(),
 		ip.String(),
 	)).Scan(
 		&dto.ipStart,
@@ -155,16 +131,17 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 }
 
 func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
-	if err := d.loadDatabaseConfig(ctx); err != nil {
+	cfg, err := d.loadConfig(ctx)
+	if err != nil {
 		return 0, err
 	}
 
 	now := time.Now().UTC()
-	if d.dbIpCfg.LastUpdate.Year() == now.Year() && d.dbIpCfg.LastUpdate.Month() == now.Month() {
+	if cfg.LastUpdate.Year() == now.Year() && cfg.LastUpdate.Month() == now.Month() {
 		return nextUpdateInterval(d.dbIpCfg.LastUpdate), ErrNoUpdateRequired
 	}
 
-	if err := d.acquireLock(ctx); err != nil {
+	if err = d.acquireLock(ctx); err != nil {
 		return 0, err
 	}
 	defer func() {
@@ -173,21 +150,21 @@ func (d *db) UpdateIpDatabase(ctx context.Context) (time.Duration, error) {
 		}
 	}()
 
-	if err := d.truncate(ctx); err != nil {
+	if err = d.truncate(ctx); err != nil {
 		return 0, err
 	}
-	if err := d.dropIndex(ctx); err != nil {
+	if err = d.dropIndex(ctx); err != nil {
 		return 0, err
 	}
-	if err := d.importCsv(ctx, buildDownloadUrl(time.Now().UTC())); err != nil {
+	if err = d.importCsv(ctx, buildDownloadUrl(time.Now().UTC())); err != nil {
 		return 0, err
 	}
-	if err := d.createIndex(ctx); err != nil {
+	if err = d.createIndex(ctx); err != nil {
 		return 0, err
 	}
-	d.switchTables()
 
-	if err := d.updateDatabaseConfig(ctx); err != nil {
+	activeTable, backupTable := d.swapTables()
+	if err = d.updateConfig(ctx, activeTable, backupTable); err != nil {
 		d.l.Printf("update ip database: %v", err)
 	}
 
