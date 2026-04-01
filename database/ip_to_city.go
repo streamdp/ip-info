@@ -98,7 +98,7 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 
 	dto := &ipToCityDto{}
 	if err := d.QueryRowContext(ctx, fmt.Sprintf(
-		`select * from %s where ip_range::inet>>='%s';`,
+		`select * from %s where ip_range::inet >>='%s' order by ip_range desc limit 1;`,
 		d.activeTable(),
 		ip.String(),
 	)).Scan(
