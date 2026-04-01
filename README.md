@@ -112,11 +112,11 @@ For security reasons, this is not available in the production version.
 * **http** benchmarking with [hey - HTTP load generator tool](https://github.com/rakyll/hey) **without** cache, random IP:
 ```shell
 $ hey -c 2 -n 10000 -T "application/json" http://127.0.0.1:8080/ip-info?ip=8.8.8.8
-  Total:	    3.9504 secs
-  Slowest:	    0.0046 secs
-  Fastest:	    0.0004 secs
-  Average:	    0.0008 secs
-  Requests/sec:	2531.3739
+  Total:	4.1939 secs
+  Slowest:	0.0044 secs
+  Fastest:	0.0005 secs
+  Average:	0.0008 secs
+  Requests/sec:	2384.4086
 ```
 when **redis** cache used, one static IP address (for cache hit checking):
 ```shell
@@ -137,11 +137,11 @@ when **memory** cache used, one static IP address (for cache hit checking):
 * **gRPC** benchmarking with [ghz - Simple gRPC load testing tool](https://github.com/bojand/ghz) **without** cache, random IP:
 ```shell
 $ ghz -c 2 -n 10000 127.0.0.1:50051 --call IpInfo.GetIpInfo -d '{"ip":"8.8.8.8"}' --insecure 
-  Total:	6.27 s
-  Slowest:	5.17 ms
-  Fastest:	0.47 ms
-  Average:	1.02 ms
-  Requests/sec:	1594.68
+  Total:	6.83 s
+  Slowest:	5.97 ms
+  Fastest:	0.57 ms
+  Average:	1.13 ms
+  Requests/sec:	1463.12
 ```
 when **redis** cache used, one static IP address (for cache hit checking):
 ```shell
