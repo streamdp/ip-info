@@ -16,6 +16,9 @@ create table ip_to_city_one (
   ip_range   inet generated always as (inet_merge(ip_start, ip_end)) stored
 );
 
+create unique index ip_to_city_one_ip_range_uindex
+    on ip_to_city_one (ip_range);
+
 drop table if exists ip_to_city_two;
 create table ip_to_city_two (
   ip_start   inet unique,
@@ -28,6 +31,9 @@ create table ip_to_city_two (
   longitude  double precision,
   ip_range   inet generated always as (inet_merge(ip_start, ip_end)) stored
 );
+
+create unique index ip_to_city_two_ip_range_uindex
+    on ip_to_city_two (ip_range);
 
 drop table if exists config;
 create table config (
