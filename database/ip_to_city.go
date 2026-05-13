@@ -108,8 +108,8 @@ func (d *db) IpInfo(ctx context.Context, ip net.IP) (*domain.IpInfo, error) {
 		&dto.Country,
 		&dto.StateProv,
 		&dto.City,
-		&dto.Longitude,
 		&dto.Latitude,
+		&dto.Longitude,
 		&dto.ipRange,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

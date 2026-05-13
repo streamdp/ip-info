@@ -1,4 +1,4 @@
-FROM golang:1.26.1-alpine as build
+FROM golang:1.26.3-alpine as build
 
 ARG VERSION
 ENV CGO_ENABLED=0
